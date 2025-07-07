@@ -70,10 +70,7 @@ const NotionSettings: FC = () => {
       <SettingTitle style={{ justifyContent: 'flex-start', gap: 10 }}>
         {t('settings.data.notion.title')}
         <Tooltip title={t('settings.data.notion.help')} placement="right">
-          <InfoCircleOutlined
-            style={{ color: 'var(--color-text-2)', cursor: 'pointer' }}
-            onClick={handleHelpClick}
-          />
+          <InfoCircleOutlined style={{ color: 'var(--color-text-2)', cursor: 'pointer' }} onClick={handleHelpClick} />
         </Tooltip>
       </SettingTitle>
       <SettingDivider />

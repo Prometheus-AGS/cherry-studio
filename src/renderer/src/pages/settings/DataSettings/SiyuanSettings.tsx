@@ -69,8 +69,10 @@ const SiyuanSettings: FC = () => {
     siyuanRootPath
   }
 
-  const { handleInputChange, handleInputBlur, handleConnectionCheck, handleHelpClick } =
-    useThirdPartyIntegration(siyuanConfig, fieldValues)
+  const { handleInputChange, handleInputBlur, handleConnectionCheck, handleHelpClick } = useThirdPartyIntegration(
+    siyuanConfig,
+    fieldValues
+  )
 
   return (
     <SettingGroup theme={theme}>

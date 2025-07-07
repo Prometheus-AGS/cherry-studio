@@ -75,8 +75,10 @@ const YuqueSettings: FC = () => {
     yuqueRepoId
   }
 
-  const { handleInputChange, handleInputBlur, handleConnectionCheck, handleHelpClick } =
-    useThirdPartyIntegration(yuqueConfig, fieldValues)
+  const { handleInputChange, handleInputBlur, handleConnectionCheck, handleHelpClick } = useThirdPartyIntegration(
+    yuqueConfig,
+    fieldValues
+  )
 
   return (
     <SettingGroup theme={theme}>
