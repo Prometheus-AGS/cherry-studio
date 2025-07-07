@@ -58,7 +58,7 @@ const CitationsList: React.FC<CitationsListProps> = ({ citations }) => {
           )}
           {citation.type === 'knowledge' && (
             <KnowledgePopoverContent>
-              <KnowledgeCitation citation={{ ...citation, showFavicon: true }} />
+              <KnowledgeCitation citation={{ ...citation }} />
             </KnowledgePopoverContent>
           )}
         </PopoverContentItem>
