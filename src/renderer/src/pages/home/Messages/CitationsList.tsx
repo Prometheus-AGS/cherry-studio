@@ -45,16 +45,7 @@ const CitationsList: React.FC<CitationsListProps> = ({ citations }) => {
   const popoverContent = (
     <div>
       {citations.map((citation) => (
-        <PopoverContentItem key={citation.url || citation.number}>
-          {citation.type === 'websearch' ? (
-            <PopoverContent>
-              <WebSearchCitation citation={citation} />
-            </PopoverContent>
-          ) : (
-            <KnowledgePopoverContent>
-              <KnowledgeCitation citation={citation} />
-            </KnowledgePopoverContent>
-          )}
+        <PopoverContentItem key={citation.url || citation.number || citation.title}>
           {citation.type === 'websearch' && (
             <PopoverContent>
               <WebSearchCitation citation={citation} />
@@ -62,13 +53,7 @@ const CitationsList: React.FC<CitationsListProps> = ({ citations }) => {
           )}
           {citation.type === 'memory' && (
             <KnowledgePopoverContent>
-              <KnowledgeCitation
-                citation={{
-                  ...citation,
-                  title: citation.title || t('message.memory'),
-                  showFavicon: false
-                }}
-              />
+              <KnowledgeCitation citation={{ ...citation }} />
             </KnowledgePopoverContent>
           )}
           {citation.type === 'knowledge' && (

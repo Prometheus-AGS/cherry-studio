@@ -253,7 +253,7 @@ export const formatCitationsFromBlock = (block: CitationMessageBlock | undefined
       ...block.memories.map((memory, index) => ({
         number: index + 1,
         url: '',
-        title: 'Memory' + (index + 1),
+        title: `Memory ${memory.hash?.slice(0, 8)}`,
         content: memory.memory,
         showFavicon: false,
         type: 'memory'
