@@ -442,7 +442,7 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
       {provider.id === 'lmstudio' && <LMStudioSettings />}
       {provider.id === 'gpustack' && <GPUStackSettings />}
       {provider.id === 'copilot' && <GithubCopilotSettings providerId={provider.id} />}
-      {provider.id === 'vertexai' && <VertexAISettings provider={provider} />}
+      {provider.id === 'vertexai' && <VertexAISettings providerId={provider.id} />}
       <SettingSubtitle style={{ marginBottom: 5 }}>
         <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
           <HStack alignItems="center" gap={8} mb={5}>

@@ -2,7 +2,6 @@ import { HStack } from '@renderer/components/Layout'
 import { PROVIDER_CONFIG } from '@renderer/config/providers'
 import { useProvider } from '@renderer/hooks/useProvider'
 import { useVertexAISettings } from '@renderer/hooks/useVertexAI'
-import { Provider } from '@renderer/types'
 import { Alert, Input, Space } from 'antd'
 import { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -10,10 +9,10 @@ import { useTranslation } from 'react-i18next'
 import { SettingHelpLink, SettingHelpText, SettingHelpTextRow, SettingSubtitle } from '..'
 
 interface Props {
-  provider: Provider
+  providerId: string
 }
 
-const VertexAISettings: FC<Props> = ({ provider: _provider }) => {
+const VertexAISettings: FC<Props> = ({ providerId }) => {
   const { t } = useTranslation()
   const {
     projectId,
@@ -24,17 +23,18 @@ const VertexAISettings: FC<Props> = ({ provider: _provider }) => {
     setServiceAccountPrivateKey,
     setServiceAccountClientEmail
   } = useVertexAISettings()
-  const { provider } = useProvider(_provider.id)
+
+  const [localProjectId, setLocalProjectId] = useState(projectId)
+  const [localLocation, setLocalLocation] = useState(location)
+
+  const { provider, updateProvider } = useProvider(providerId)
+  const [apiHost, setApiHost] = useState(provider.apiHost)
 
   const providerConfig = PROVIDER_CONFIG['vertexai']
   const apiKeyWebsite = providerConfig?.websites?.apiKey
 
-  const [localProjectId, setLocalProjectId] = useState(projectId)
-  const [localLocation, setLocalLocation] = useState(location)
-  const [apiHost, setApiHost] = useState(provider.apiHost)
-  const { updateProvider } = useProvider(provider.id)
   const onUpdateApiHost = () => {
-    updateProvider({ ...provider, apiHost })
+    updateProvider({ apiHost })
   }
 
   const handleProjectIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
