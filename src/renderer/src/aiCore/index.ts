@@ -9,6 +9,7 @@ import { OpenAIAPIClient } from './clients'
 import { AihubmixAPIClient } from './clients/AihubmixAPIClient'
 import { AnthropicAPIClient } from './clients/anthropic/AnthropicAPIClient'
 import { VertexAPIClient } from './clients/gemini/VertexAPIClient'
+import { NewAPIClient } from './clients/NewAPIClient'
 import { OpenAIResponseAPIClient } from './clients/openai/OpenAIResponseAPIClient'
 import { CompletionsMiddlewareBuilder } from './middleware/builder'
 import { MIDDLEWARE_NAME as AbortHandlerMiddlewareName } from './middleware/common/AbortHandlerMiddleware'
@@ -45,6 +46,11 @@ export default class AiProvider {
 
     if (this.apiClient instanceof AihubmixAPIClient) {
       // AihubmixAPIClient: 根据模型选择合适的子client
+      client = this.apiClient.getClientForModel(model)
+      if (client instanceof OpenAIResponseAPIClient) {
+        client = client.getClient(model) as BaseApiClient
+      }
+    } else if (this.apiClient instanceof NewAPIClient) {
       client = this.apiClient.getClientForModel(model)
       if (client instanceof OpenAIResponseAPIClient) {
         client = client.getClient(model) as BaseApiClient

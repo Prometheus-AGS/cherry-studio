@@ -17,9 +17,9 @@ import { estimateHistoryTokens } from '@renderer/services/TokenService'
 import store, { useAppDispatch } from '@renderer/store'
 import { messageBlocksSelectors, updateOneBlock } from '@renderer/store/messageBlock'
 import { newMessagesActions } from '@renderer/store/newMessage'
-import { saveMessageAndBlocksToDB } from '@renderer/store/thunk/messageThunk'
+import { saveMessageAndBlocksToDB, updateMessageAndBlocksThunk } from '@renderer/store/thunk/messageThunk'
 import type { Assistant, Topic } from '@renderer/types'
-import { type Message, MessageBlockType } from '@renderer/types/newMessage'
+import { type Message, MessageBlock, MessageBlockType } from '@renderer/types/newMessage'
 import {
   captureScrollableDivAsBlob,
   captureScrollableDivAsDataURL,
@@ -211,7 +211,15 @@ const Messages: React.FC<MessagesProps> = ({ assistant, topic, setActiveTopic, o
           if (msgBlock && isTextLikeBlock(msgBlock) && msgBlock.type !== MessageBlockType.ERROR) {
             try {
               const updatedRaw = updateCodeBlock(msgBlock.content, codeBlockId, newContent)
+              const updatedBlock: MessageBlock = {
+                ...msgBlock,
+                content: updatedRaw,
+                updatedAt: new Date().toISOString()
+              }
+
               dispatch(updateOneBlock({ id: msgBlockId, changes: { content: updatedRaw } }))
+              await dispatch(updateMessageAndBlocksThunk(topic.id, null, [updatedBlock]))
+
               window.message.success({ content: t('code_block.edit.save.success'), key: 'save-code' })
             } catch (error) {
               console.error(`Failed to save code block ${codeBlockId} content to message block ${msgBlockId}:`, error)
@@ -267,6 +275,7 @@ const Messages: React.FC<MessagesProps> = ({ assistant, topic, setActiveTopic, o
   }, [onComponentUpdate])
 
   const groupedMessages = useMemo(() => Object.entries(getGroupedMessages(displayMessages)), [displayMessages])
+
   return (
     <MessagesContainer
       id="messages"
@@ -364,7 +373,7 @@ const LoaderContainer = styled.div`
 const ScrollContainer = styled.div`
   display: flex;
   flex-direction: column-reverse;
-  padding: 20px 10px 20px 16px;
+  padding: 10px 16px 20px;
   .multi-select-mode & {
     padding-bottom: 60px;
   }
