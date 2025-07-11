@@ -19,6 +19,11 @@ export class AnthropicVertexClient extends AnthropicAPIClient {
     const forceUseOriginalHost = () => {
       return host.endsWith('/')
     }
+
+    if (!host) {
+      return host
+    }
+
     return forceUseOriginalHost() ? host : `${host}/v1/`
   }
 
@@ -40,6 +45,8 @@ export class AnthropicVertexClient extends AnthropicAPIClient {
     }
 
     const authHeaders = await this.getServiceAccountAuthHeaders()
+
+    console.log(this.getBaseURL())
 
     this.sdkInstance = new AnthropicVertex({
       projectId: projectId,
