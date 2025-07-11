@@ -15,13 +15,11 @@ export class AnthropicVertexClient extends AnthropicAPIClient {
     super(provider)
   }
 
-  private formatApiHost(baseUrl: string) {
-    if (baseUrl.endsWith('/v1/')) {
-      baseUrl = baseUrl.slice(0, -4)
-    } else if (baseUrl.endsWith('/v1')) {
-      baseUrl = baseUrl.slice(0, -3)
+  private formatApiHost(host: string): string {
+    const forceUseOriginalHost = () => {
+      return host.endsWith('/')
     }
-    return baseUrl
+    return forceUseOriginalHost() ? host : `${host}/v1/`
   }
 
   override getBaseURL() {
