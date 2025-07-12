@@ -29,18 +29,18 @@ const McpServersList: FC = () => {
 
   const fetchServerVersion = useCallback(async (server: MCPServer) => {
     if (!server.isActive) return
-    
+
     try {
       const version = await window.api.mcp.getServerVersion(server)
-      setServerVersions(prev => ({ ...prev, [server.id]: version }))
+      setServerVersions((prev) => ({ ...prev, [server.id]: version }))
     } catch (error) {
-      setServerVersions(prev => ({ ...prev, [server.id]: null }))
+      setServerVersions((prev) => ({ ...prev, [server.id]: null }))
     }
   }, [])
 
   // Fetch versions for all active servers
   useEffect(() => {
-    mcpServers.forEach(server => {
+    mcpServers.forEach((server) => {
       if (server.isActive) {
         fetchServerVersion(server)
       }
@@ -90,7 +90,7 @@ const McpServersList: FC = () => {
       } else {
         await window.api.mcp.stopServer(server)
         // Clear version when server is deactivated
-        setServerVersions(prev => ({ ...prev, [server.id]: null }))
+        setServerVersions((prev) => ({ ...prev, [server.id]: null }))
       }
       updateMCPServer({ ...server, isActive: active })
     } catch (error: any) {
@@ -151,9 +151,7 @@ const McpServersList: FC = () => {
               <ServerName>
                 {server.logoUrl && <ServerLogo src={server.logoUrl} alt={`${server.name} logo`} />}
                 <ServerNameText>{server.name}</ServerNameText>
-                {serverVersions[server.id] && (
-                  <VersionBadge count={serverVersions[server.id]} color="blue" />
-                )}
+                {serverVersions[server.id] && <VersionBadge count={serverVersions[server.id]} color="blue" />}
                 {server.providerUrl && (
                   <Button
                     size="small"
