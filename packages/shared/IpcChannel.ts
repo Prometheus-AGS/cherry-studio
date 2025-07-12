@@ -258,4 +258,11 @@ export enum IpcChannel {
   Memory_DeleteUser = 'memory:delete-user',
   Memory_DeleteAllMemoriesForUser = 'memory:delete-all-memories-for-user',
   Memory_GetUsersList = 'memory:get-users-list'
+
+  // API Server
+  ApiServer_Start = 'api-server:start',
+  ApiServer_Stop = 'api-server:stop',
+  ApiServer_Restart = 'api-server:restart',
+  ApiServer_GetStatus = 'api-server:get-status',
+  ApiServer_GetConfig = 'api-server:get-config'
 }
