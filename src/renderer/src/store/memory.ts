@@ -29,7 +29,7 @@ const defaultMemoryConfig: MemoryConfig = {
 export const initialState: MemoryState = {
   memoryConfig: defaultMemoryConfig,
   currentUserId: localStorage.getItem('memory_currentUserId') || 'default-user',
-  globalMemoryEnabled: true // Default to true, can be set to false in settings
+  globalMemoryEnabled: false // Default to false
 }
 
 /**
@@ -72,7 +72,6 @@ const memorySlice = createSlice({
      */
     setGlobalMemoryEnabled: (state, action: PayloadAction<boolean>) => {
       state.globalMemoryEnabled = action.payload
-      localStorage.setItem('memory_globalEnabled', action.payload.toString())
     }
   },
   selectors: {
@@ -113,7 +112,7 @@ export const selectMemoryConfig = (state: { memory?: MemoryState }) => state.mem
 export const selectCurrentUserId = (state: { memory?: MemoryState }) => state.memory?.currentUserId || 'default-user'
 
 // Root state selector for global memory enabled with safety check
-export const selectGlobalMemoryEnabled = (state: { memory?: MemoryState }) => state.memory?.globalMemoryEnabled ?? true
+export const selectGlobalMemoryEnabled = (state: { memory?: MemoryState }) => state.memory?.globalMemoryEnabled ?? false
 
 export { memorySlice }
 // Export the reducer as default export

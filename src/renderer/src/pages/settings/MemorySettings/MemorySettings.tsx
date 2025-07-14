@@ -580,7 +580,20 @@ const MemorySettings = () => {
     <SettingContainer theme={theme}>
       {/* Memory Settings */}
       <SettingGroup theme={theme}>
-        <SettingTitle>{t('memory.settings')}</SettingTitle>
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '2px' }}>
+          <SettingTitle>{t('memory.settings')}</SettingTitle>
+          <span
+            style={{
+              fontSize: '12px',
+              color: 'var(--color-primary)',
+              background: 'var(--color-primary-bg)',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontWeight: '500'
+            }}>
+            Beta
+          </span>
+        </div>
         <SettingDivider />
         <SettingRow>
           <SettingRowTitle>{t('memory.global_memory')}</SettingRowTitle>
@@ -600,12 +613,12 @@ const MemorySettings = () => {
         <SettingTitle>{t('memory.user_management')}</SettingTitle>
         <SettingDivider />
         <SettingRow>
-          <SettingRowTitle>
-            {t('memory.user_id')}
-            <SettingHelpText>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <SettingRowTitle>{t('memory.user_id')}</SettingRowTitle>
+            <SettingHelpText style={{ fontSize: '13px', lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>
               {allMemories.length} {t('memory.total_memories')}
             </SettingHelpText>
-          </SettingRowTitle>
+          </div>
           <Select
             value={currentUser}
             onChange={handleUserSwitch}
@@ -655,10 +668,12 @@ const MemorySettings = () => {
         </SettingRow>
         <SettingDivider />
         <SettingRow>
-          <SettingRowTitle>
-            {t('memory.users')}
-            <SettingHelpText>{t('memory.statistics')}</SettingHelpText>
-          </SettingRowTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <SettingRowTitle>{t('memory.users')}</SettingRowTitle>
+            <SettingHelpText style={{ fontSize: '13px', lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>
+              {t('memory.statistics')}
+            </SettingHelpText>
+          </div>
           <Badge count={uniqueUsers.length} showZero style={{ backgroundColor: 'var(--color-primary)' }} />
         </SettingRow>
       </SettingGroup>
