@@ -1748,7 +1748,7 @@ const migrateConfig = {
           (icon) => icon !== ('memory' as any)
         )
       }
-      
+
       if (!state.settings.s3) {
         state.settings.s3 = settingsInitialState.s3
       }
