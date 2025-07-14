@@ -53,8 +53,8 @@ export const getKnowledgeBaseParams = (base: KnowledgeBase): KnowledgeBaseParams
       apiKey: rerankAiProvider.getApiKey() || 'secret',
       baseURL: rerankHost
     },
-    preprocessOrOcrProvider: base.preprocessOrOcrProvider
-    // topN: base.topN
+    preprocessOrOcrProvider: base.preprocessOrOcrProvider,
+    documentCount: base.documentCount
   }
 }
 

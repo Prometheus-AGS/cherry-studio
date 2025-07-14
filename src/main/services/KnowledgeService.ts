@@ -121,7 +121,8 @@ class KnowledgeService {
   private getRagApplication = async ({
     id,
     embedApiClient,
-    dimensions
+    dimensions,
+    documentCount
   }: KnowledgeBaseParams): Promise<RAGApplication> => {
     let ragApplication: RAGApplication
     const embeddings = new Embeddings({
@@ -133,6 +134,7 @@ class KnowledgeService {
         .setModel('NO_MODEL')
         .setEmbeddingModel(embeddings)
         .setVectorDatabase(new LibSqlDb({ path: path.join(this.storageDir, id) }))
+        .setSearchResultCount(documentCount || 30)
         .build()
     } catch (e) {
       Logger.error(e)
