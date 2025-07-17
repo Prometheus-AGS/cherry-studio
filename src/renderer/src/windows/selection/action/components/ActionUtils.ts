@@ -3,6 +3,7 @@ import { getAssistantMessage, getUserMessage } from '@renderer/services/Messages
 import store from '@renderer/store'
 import { updateOneBlock, upsertManyBlocks, upsertOneBlock } from '@renderer/store/messageBlock'
 import { newMessagesActions } from '@renderer/store/newMessage'
+import { cancelThrottledBlockUpdate, throttledBlockUpdate } from '@renderer/store/thunk/messageThunk'
 import { Assistant, Topic } from '@renderer/types'
 import { Chunk, ChunkType } from '@renderer/types/chunk'
 import { AssistantMessageStatus, MessageBlockStatus } from '@renderer/types/newMessage'
@@ -77,12 +78,10 @@ export const processMessages = async (
           case ChunkType.THINKING_DELTA:
             {
               if (thinkingBlockId) {
-                store.dispatch(
-                  updateOneBlock({
-                    id: thinkingBlockId,
-                    changes: { content: chunk.text, thinking_millsec: chunk.thinking_millsec }
-                  })
-                )
+                throttledBlockUpdate(thinkingBlockId, {
+                  content: chunk.text,
+                  thinking_millsec: chunk.thinking_millsec
+                })
               }
               onStream()
             }
@@ -90,6 +89,7 @@ export const processMessages = async (
           case ChunkType.THINKING_COMPLETE:
             {
               if (thinkingBlockId) {
+                cancelThrottledBlockUpdate(thinkingBlockId)
                 store.dispatch(
                   updateOneBlock({
                     id: thinkingBlockId,
@@ -127,7 +127,7 @@ export const processMessages = async (
           case ChunkType.TEXT_DELTA:
             {
               if (textBlockId) {
-                store.dispatch(updateOneBlock({ id: textBlockId, changes: { content: chunk.text } }))
+                throttledBlockUpdate(textBlockContent, { content: chunk.text })
                 textBlockContent = chunk.text
               }
               onStream()
@@ -135,28 +135,31 @@ export const processMessages = async (
             break
           case ChunkType.TEXT_COMPLETE:
             {
-              textBlockId &&
+              if (textBlockId) {
+                cancelThrottledBlockUpdate(textBlockId)
                 store.dispatch(
                   updateOneBlock({
                     id: textBlockId,
                     changes: { content: chunk.text, status: MessageBlockStatus.SUCCESS }
                   })
                 )
-              onFinish(chunk.text)
-              textBlockId = null
+                onFinish(chunk.text)
+                textBlockId = null
+              }
             }
             break
-          case ChunkType.BLOCK_COMPLETE: {
-            store.dispatch(
-              newMessagesActions.updateMessage({
-                topicId: topic.id,
-                messageId: assistantMessage.id,
-                updates: { status: AssistantMessageStatus.SUCCESS }
-              })
-            )
-            onFinish(textBlockContent)
+          case ChunkType.BLOCK_COMPLETE:
+            {
+              store.dispatch(
+                newMessagesActions.updateMessage({
+                  topicId: topic.id,
+                  messageId: assistantMessage.id,
+                  updates: { status: AssistantMessageStatus.SUCCESS }
+                })
+              )
+              onFinish(textBlockContent)
+            }
             break
-          }
           case ChunkType.ERROR:
             {
               const blockId = textBlockId || thinkingBlockId
