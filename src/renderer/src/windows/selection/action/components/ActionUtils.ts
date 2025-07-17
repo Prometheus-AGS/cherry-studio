@@ -142,20 +142,45 @@ export const processMessages = async (
                     changes: { content: chunk.text, status: MessageBlockStatus.SUCCESS }
                   })
                 )
-              store.dispatch(
-                newMessagesActions.updateMessage({
-                  topicId: topic.id,
-                  messageId: assistantMessage.id,
-                  updates: { status: AssistantMessageStatus.SUCCESS }
-                })
-              )
               onFinish(chunk.text)
               textBlockId = null
             }
             break
-          case ChunkType.BLOCK_COMPLETE:
-          case ChunkType.ERROR:
+          case ChunkType.BLOCK_COMPLETE: {
+            store.dispatch(
+              newMessagesActions.updateMessage({
+                topicId: topic.id,
+                messageId: assistantMessage.id,
+                updates: { status: AssistantMessageStatus.SUCCESS }
+              })
+            )
             onFinish(textBlockContent)
+            break
+          }
+          case ChunkType.ERROR:
+            {
+              const blockId = textBlockId || thinkingBlockId
+              if (blockId) {
+                store.dispatch(
+                  updateOneBlock({
+                    id: blockId,
+                    changes: {
+                      status: isAbortError(chunk.error) ? MessageBlockStatus.PAUSED : MessageBlockStatus.ERROR
+                    }
+                  })
+                )
+              }
+              store.dispatch(
+                newMessagesActions.updateMessage({
+                  topicId: topic.id,
+                  messageId: assistantMessage.id,
+                  updates: {
+                    status: isAbortError(chunk.error) ? AssistantMessageStatus.PAUSED : AssistantMessageStatus.SUCCESS
+                  }
+                })
+              )
+              onFinish(textBlockContent)
+            }
             break
         }
       }
