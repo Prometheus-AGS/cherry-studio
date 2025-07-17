@@ -8,7 +8,7 @@ import {
   OpenAICompatibleModel,
   transformModelToOpenAI,
   validateProvider
-} from './utils'
+} from '../utils'
 
 export interface ModelData extends OpenAICompatibleModel {
   provider_id: string
