@@ -35,7 +35,7 @@ export const processMessages = async (
 
     let textBlockId: string | null = null
     let thinkingBlockId: string | null = null
-    let textBlockContent: string = ''
+    const textBlockContent: string = ''
 
     const assistantMessage = getAssistantMessage({
       assistant,
@@ -127,8 +127,7 @@ export const processMessages = async (
           case ChunkType.TEXT_DELTA:
             {
               if (textBlockId) {
-                throttledBlockUpdate(textBlockContent, { content: chunk.text })
-                textBlockContent = chunk.text
+                throttledBlockUpdate(textBlockId, { content: chunk.text })
               }
               onStream()
             }
