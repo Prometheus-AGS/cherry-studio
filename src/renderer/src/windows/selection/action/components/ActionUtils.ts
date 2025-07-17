@@ -62,6 +62,13 @@ export const processMessages = async (
                   status: MessageBlockStatus.STREAMING
                 })
                 thinkingBlockId = block.id
+                store.dispatch(
+                  newMessagesActions.updateMessage({
+                    topicId: topic.id,
+                    messageId: assistantMessage.id,
+                    updates: { blockInstruction: { id: block.id } }
+                  })
+                )
                 store.dispatch(upsertOneBlock(block))
               }
             }
