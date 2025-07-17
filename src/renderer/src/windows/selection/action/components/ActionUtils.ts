@@ -33,10 +33,7 @@ export const processMessages = async (
     store.dispatch(upsertManyBlocks(userBlocks))
 
     let textBlockId: string | null = null
-    let textBlockContent: string = ''
-
     let thinkingBlockId: string | null = null
-    let thinkingBlockContent: string = ''
 
     const assistantMessage = getAssistantMessage({
       assistant,
@@ -53,29 +50,30 @@ export const processMessages = async (
       messages: [userMessage],
       assistant: { ...assistant, settings: { streamOutput: true } },
       onChunkReceived: (chunk: Chunk) => {
+        console.log('chunk: ', chunk)
         switch (chunk.type) {
-          case ChunkType.THINKING_DELTA:
+          case ChunkType.THINKING_START:
             {
-              thinkingBlockContent += chunk.text
-              if (!thinkingBlockId) {
-                const block = createThinkingBlock(assistantMessage.id, chunk.text, {
-                  status: MessageBlockStatus.STREAMING,
-                  thinking_millsec: chunk.thinking_millsec
+              if (thinkingBlockId) {
+                store.dispatch(
+                  updateOneBlock({ id: thinkingBlockId, changes: { status: MessageBlockStatus.STREAMING } })
+                )
+              } else {
+                const block = createThinkingBlock(assistantMessage.id, '', {
+                  status: MessageBlockStatus.STREAMING
                 })
                 thinkingBlockId = block.id
-                store.dispatch(
-                  newMessagesActions.updateMessage({
-                    topicId: topic.id,
-                    messageId: assistantMessage.id,
-                    updates: { blockInstruction: { id: block.id } }
-                  })
-                )
                 store.dispatch(upsertOneBlock(block))
-              } else {
+              }
+            }
+            break
+          case ChunkType.THINKING_DELTA:
+            {
+              if (thinkingBlockId) {
                 store.dispatch(
                   updateOneBlock({
                     id: thinkingBlockId,
-                    changes: { content: thinkingBlockContent, thinking_millsec: chunk.thinking_millsec }
+                    changes: { content: chunk.text, thinking_millsec: chunk.thinking_millsec }
                   })
                 )
               }
@@ -88,17 +86,23 @@ export const processMessages = async (
                 store.dispatch(
                   updateOneBlock({
                     id: thinkingBlockId,
-                    changes: { status: MessageBlockStatus.SUCCESS, thinking_millsec: chunk.thinking_millsec }
+                    changes: {
+                      content: chunk.text,
+                      status: MessageBlockStatus.SUCCESS,
+                      thinking_millsec: chunk.thinking_millsec
+                    }
                   })
                 )
+                thinkingBlockId = null
               }
             }
             break
-          case ChunkType.TEXT_DELTA:
+          case ChunkType.TEXT_START:
             {
-              textBlockContent += chunk.text
-              if (!textBlockId) {
-                const block = createMainTextBlock(assistantMessage.id, chunk.text, {
+              if (textBlockId) {
+                store.dispatch(updateOneBlock({ id: textBlockId, changes: { status: MessageBlockStatus.STREAMING } }))
+              } else {
+                const block = createMainTextBlock(assistantMessage.id, '', {
                   status: MessageBlockStatus.STREAMING
                 })
                 textBlockId = block.id
@@ -110,10 +114,14 @@ export const processMessages = async (
                   })
                 )
                 store.dispatch(upsertOneBlock(block))
-              } else {
-                store.dispatch(updateOneBlock({ id: textBlockId, changes: { content: textBlockContent } }))
               }
-
+            }
+            break
+          case ChunkType.TEXT_DELTA:
+            {
+              if (textBlockId) {
+                store.dispatch(updateOneBlock({ id: textBlockId, changes: { content: chunk.text } }))
+              }
               onStream()
             }
             break
@@ -123,7 +131,7 @@ export const processMessages = async (
                 store.dispatch(
                   updateOneBlock({
                     id: textBlockId,
-                    changes: { status: MessageBlockStatus.SUCCESS }
+                    changes: { content: chunk.text, status: MessageBlockStatus.SUCCESS }
                   })
                 )
               store.dispatch(
@@ -133,12 +141,12 @@ export const processMessages = async (
                   updates: { status: AssistantMessageStatus.SUCCESS }
                 })
               )
-              textBlockContent = chunk.text
+              onFinish(chunk.text)
+              textBlockId = null
             }
             break
           case ChunkType.BLOCK_COMPLETE:
           case ChunkType.ERROR:
-            onFinish(textBlockContent)
             break
         }
       }
