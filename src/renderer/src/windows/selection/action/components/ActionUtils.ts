@@ -34,6 +34,7 @@ export const processMessages = async (
 
     let textBlockId: string | null = null
     let thinkingBlockId: string | null = null
+    let textBlockContent: string = ''
 
     const assistantMessage = getAssistantMessage({
       assistant,
@@ -127,6 +128,7 @@ export const processMessages = async (
             {
               if (textBlockId) {
                 store.dispatch(updateOneBlock({ id: textBlockId, changes: { content: chunk.text } }))
+                textBlockContent = chunk.text
               }
               onStream()
             }
@@ -153,6 +155,7 @@ export const processMessages = async (
             break
           case ChunkType.BLOCK_COMPLETE:
           case ChunkType.ERROR:
+            onFinish(textBlockContent)
             break
         }
       }
