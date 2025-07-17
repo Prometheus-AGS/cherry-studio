@@ -50,7 +50,6 @@ export const processMessages = async (
       messages: [userMessage],
       assistant: { ...assistant, settings: { streamOutput: true } },
       onChunkReceived: (chunk: Chunk) => {
-        console.log('chunk: ', chunk)
         switch (chunk.type) {
           case ChunkType.THINKING_START:
             {
