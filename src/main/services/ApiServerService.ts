@@ -5,8 +5,8 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { v4 as uuidv4 } from 'uuid'
 
-import { setupChatRoutes } from '../api/chat.routes'
-import { setupModelsRoutes } from '../api/models.routes'
+import { setupChatRoutes } from '../apiServer/chat.routes'
+import { setupModelsRoutes } from '../apiServer/models.routes'
 import { reduxService } from './ReduxService'
 
 export interface ApiServerConfig {
@@ -24,7 +24,7 @@ export class ApiServerService {
     // Initialize with default config, will be updated when starting
     this.config = {
       port: 13333,
-      apiKey: `cs-${uuidv4()}`
+      apiKey: `sk-${uuidv4()}`
     }
     this.setupMiddleware()
     this.setupRoutes()
@@ -36,7 +36,7 @@ export class ApiServerService {
 
       // Auto-generate API key if not set
       if (!settings?.apiServer?.apiKey) {
-        const generatedKey = `cs-${uuidv4()}`
+        const generatedKey = `sk-${uuidv4()}`
         await reduxService.dispatch({
           type: 'settings/setApiServerApiKey',
           payload: generatedKey
