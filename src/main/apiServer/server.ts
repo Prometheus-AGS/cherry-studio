@@ -1,16 +1,17 @@
 import { createServer } from 'node:http'
 
-import Logger from 'electron-log'
-
+import { loggerService } from '../services/LoggerService'
 import { app } from './app'
 import { config } from './config'
+
+const logger = loggerService.withContext('ApiServer')
 
 export class ApiServer {
   private server: ReturnType<typeof createServer> | null = null
 
   async start(): Promise<void> {
     if (this.server) {
-      Logger.warn('Server already running')
+      logger.warn('Server already running')
       return
     }
 
@@ -24,7 +25,7 @@ export class ApiServer {
         const response = await app.fetch(request)
         await this.webToNodeResponse(response, res)
       } catch (error) {
-        Logger.error('Request processing error:', error)
+        logger.error('Request processing error:', error)
         res.statusCode = 500
         res.setHeader('Content-Type', 'application/json')
         res.end(JSON.stringify({ error: 'Internal server error' }))
@@ -34,8 +35,8 @@ export class ApiServer {
     // Start server
     return new Promise((resolve, reject) => {
       this.server!.listen(port, host, () => {
-        Logger.info(`API Server started at http://${host}:${port}`)
-        Logger.info(`API Key: ${config.get().apiKey}`)
+        logger.info(`API Server started at http://${host}:${port}`)
+        logger.info(`API Key: ${config.get().apiKey}`)
         resolve()
       })
 
@@ -48,7 +49,7 @@ export class ApiServer {
 
     return new Promise((resolve) => {
       this.server!.close(() => {
-        Logger.info('API Server stopped')
+        logger.info('API Server stopped')
         this.server = null
         resolve()
       })

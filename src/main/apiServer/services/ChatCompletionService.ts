@@ -1,7 +1,7 @@
-import Logger from 'electron-log'
 import OpenAI from 'openai'
 import { ChatCompletionCreateParams } from 'openai/resources'
 
+import { loggerService } from '../../services/LoggerService'
 import {
   getProviderByModel,
   listAllAvailableModels,
@@ -9,6 +9,8 @@ import {
   transformModelToOpenAI,
   validateProvider
 } from '../utils'
+
+const logger = loggerService.withContext('ChatCompletionService')
 
 export interface ModelData extends OpenAICompatibleModel {
   provider_id: string
@@ -24,7 +26,7 @@ export interface ValidationResult {
 export class ChatCompletionService {
   async getModels(): Promise<ModelData[]> {
     try {
-      Logger.info('Getting available models from providers')
+      logger.info('Getting available models from providers')
 
       const models = listAllAvailableModels()
 
@@ -38,10 +40,10 @@ export class ChatCompletionService {
         }
       })
 
-      Logger.info(`Successfully retrieved ${modelData.length} models`)
+      logger.info(`Successfully retrieved ${modelData.length} models`)
       return modelData
     } catch (error) {
-      Logger.error('Error getting models:', error)
+      logger.error('Error getting models:', error)
       return []
     }
   }
@@ -98,7 +100,7 @@ export class ChatCompletionService {
 
   async processCompletion(request: ChatCompletionCreateParams): Promise<OpenAI.Chat.Completions.ChatCompletion> {
     try {
-      Logger.info('Processing chat completion request:', {
+      logger.info('Processing chat completion request:', {
         model: request.model,
         messageCount: request.messages.length,
         stream: request.stream
@@ -137,7 +139,7 @@ export class ChatCompletionService {
         stream: false
       }
 
-      Logger.debug('Sending request to provider:', {
+      logger.debug('Sending request to provider:', {
         provider: provider.id,
         model: modelId,
         apiHost: provider.apiHost
@@ -145,10 +147,10 @@ export class ChatCompletionService {
 
       const response = (await client.chat.completions.create(providerRequest)) as OpenAI.Chat.Completions.ChatCompletion
 
-      Logger.info('Successfully processed chat completion')
+      logger.info('Successfully processed chat completion')
       return response
     } catch (error) {
-      Logger.error('Error processing chat completion:', error)
+      logger.error('Error processing chat completion:', error)
       throw error
     }
   }
@@ -157,7 +159,7 @@ export class ChatCompletionService {
     request: ChatCompletionCreateParams
   ): AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk> {
     try {
-      Logger.info('Processing streaming chat completion request:', {
+      logger.info('Processing streaming chat completion request:', {
         model: request.model,
         messageCount: request.messages.length
       })
@@ -195,7 +197,7 @@ export class ChatCompletionService {
         stream: true as const
       }
 
-      Logger.debug('Sending streaming request to provider:', {
+      logger.debug('Sending streaming request to provider:', {
         provider: provider.id,
         model: modelId,
         apiHost: provider.apiHost
@@ -207,9 +209,9 @@ export class ChatCompletionService {
         yield chunk
       }
 
-      Logger.info('Successfully completed streaming chat completion')
+      logger.info('Successfully completed streaming chat completion')
     } catch (error) {
-      Logger.error('Error processing streaming chat completion:', error)
+      logger.error('Error processing streaming chat completion:', error)
       throw error
     }
   }

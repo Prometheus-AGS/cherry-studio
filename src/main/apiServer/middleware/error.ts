@@ -1,8 +1,11 @@
-import Logger from 'electron-log'
 import { ErrorHandler } from 'hono'
 
+import { loggerService } from '../../services/LoggerService'
+
+const logger = loggerService.withContext('ApiServerErrorHandler')
+
 export const errorHandler: ErrorHandler = (err, c) => {
-  Logger.error('API Server Error:', err)
+  logger.error('API Server Error:', err)
 
   // Don't expose internal errors in production
   const isDev = process.env.NODE_ENV === 'development'

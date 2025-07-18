@@ -1,27 +1,29 @@
-import Logger from 'electron-log'
 import { Hono } from 'hono'
 
+import { loggerService } from '../../services/LoggerService'
 import { chatCompletionService } from '../services/ChatCompletionService'
+
+const logger = loggerService.withContext('ApiServerModelsRoutes')
 
 const app = new Hono()
 
 app.get('/', async (c) => {
   try {
-    Logger.info('Models list request received')
+    logger.info('Models list request received')
 
     const models = await chatCompletionService.getModels()
 
     if (models.length === 0) {
-      Logger.warn('No models available from providers')
+      logger.warn('No models available from providers')
     }
 
-    Logger.info(`Returning ${models.length} models`)
+    logger.info(`Returning ${models.length} models`)
     return c.json({
       object: 'list',
       data: models
     })
   } catch (error) {
-    Logger.error('Error fetching models:', error)
+    logger.error('Error fetching models:', error)
     return c.json(
       {
         error: {

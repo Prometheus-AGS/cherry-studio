@@ -1,11 +1,13 @@
-import Logger from 'electron-log'
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
 import OpenAI from 'openai'
 import { ChatCompletionCreateParams } from 'openai/resources'
 
+import { loggerService } from '../../services/LoggerService'
 import { chatCompletionService } from '../services/ChatCompletionService'
 import { getProviderByModel } from '../utils'
+
+const logger = loggerService.withContext('ApiServerChatRoutes')
 
 const app = new Hono()
 
@@ -26,7 +28,7 @@ app.post('/completions', async (c) => {
       )
     }
 
-    Logger.info('Chat completion request:', {
+    logger.info('Chat completion request:', {
       model: request.model,
       messageCount: request.messages?.length || 0,
       stream: request.stream
@@ -120,7 +122,7 @@ app.post('/completions', async (c) => {
           }
           await stream.write('data: [DONE]\n\n')
         } catch (streamError) {
-          Logger.error('Stream error:', streamError)
+          logger.error('Stream error:', streamError)
           await stream.write(
             `data: ${JSON.stringify({
               error: {
@@ -138,7 +140,7 @@ app.post('/completions', async (c) => {
     const response = await client.chat.completions.create(request)
     return c.json(response)
   } catch (error) {
-    Logger.error('Chat completion error:', error)
+    logger.error('Chat completion error:', error)
 
     let statusCode = 500
     let errorType = 'server_error'

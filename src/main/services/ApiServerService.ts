@@ -1,6 +1,6 @@
-import Logger from 'electron-log'
-
 import { apiServer } from '../apiServer'
+import { loggerService } from './LoggerService'
+const logger = loggerService.withContext('ApiServerService')
 
 export interface ApiServerConfig {
   port: number
@@ -15,9 +15,9 @@ export class ApiServerService {
   async start(): Promise<void> {
     try {
       await apiServer.start()
-      Logger.info('API Server started successfully')
+      logger.info('API Server started successfully')
     } catch (error) {
-      Logger.error('Failed to start API Server:', error)
+      logger.error('Failed to start API Server:', error)
       throw error
     }
   }
@@ -25,9 +25,9 @@ export class ApiServerService {
   async stop(): Promise<void> {
     try {
       await apiServer.stop()
-      Logger.info('API Server stopped successfully')
+      logger.info('API Server stopped successfully')
     } catch (error) {
-      Logger.error('Failed to stop API Server:', error)
+      logger.error('Failed to stop API Server:', error)
       throw error
     }
   }
@@ -35,9 +35,9 @@ export class ApiServerService {
   async restart(): Promise<void> {
     try {
       await apiServer.restart()
-      Logger.info('API Server restarted successfully')
+      logger.info('API Server restarted successfully')
     } catch (error) {
-      Logger.error('Failed to restart API Server:', error)
+      logger.error('Failed to restart API Server:', error)
       throw error
     }
   }

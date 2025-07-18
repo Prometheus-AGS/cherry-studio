@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 
+import { loggerService } from '../services/LoggerService'
 import { reduxService } from '../services/ReduxService'
+
+const logger = loggerService.withContext('ApiServerConfig')
 
 export interface Config {
   port: number
@@ -38,7 +41,7 @@ class ConfigManager {
 
       return this._config
     } catch (error) {
-      console.warn('Failed to load config from Redux, using defaults:', error)
+      logger.warn('Failed to load config from Redux, using defaults:', error)
       this._config = {
         port: 13333,
         host: 'localhost',
