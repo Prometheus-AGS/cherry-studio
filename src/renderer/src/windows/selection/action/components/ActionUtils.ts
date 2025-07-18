@@ -38,7 +38,7 @@ export const processMessages = async (
 
     let textBlockId: string | null = null
     let thinkingBlockId: string | null = null
-    const textBlockContent: string = ''
+    let textBlockContent: string = ''
 
     const assistantMessage = getAssistantMessage({
       assistant,
@@ -145,7 +145,7 @@ export const processMessages = async (
                     changes: { content: chunk.text, status: MessageBlockStatus.SUCCESS }
                   })
                 )
-                onFinish(chunk.text)
+                textBlockContent = chunk.text
                 textBlockId = null
               }
             }
