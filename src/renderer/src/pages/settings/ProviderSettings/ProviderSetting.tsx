@@ -1,5 +1,4 @@
 import { CheckOutlined, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons'
-import { isOpenAIProvider } from '@renderer/aiCore/clients/ApiClientFactory'
 import OpenAIAlert from '@renderer/components/Alert/OpenAIAlert'
 import { StreamlineGoodHealthAndWellBeing } from '@renderer/components/Icons/SVGIcon'
 import { HStack } from '@renderer/components/Layout'
@@ -12,13 +11,19 @@ import i18n from '@renderer/i18n'
 import { checkApi } from '@renderer/services/ApiService'
 import { checkModelsHealth, getModelCheckSummary } from '@renderer/services/HealthCheckService'
 import { isProviderSupportAuth } from '@renderer/services/ProviderService'
-import { formatApiHost, formatApiKeys, getFancyProviderName, splitApiKeyString } from '@renderer/utils'
+import {
+  formatApiHost,
+  formatApiKeys,
+  getFancyProviderName,
+  isOpenAIProvider,
+  splitApiKeyString
+} from '@renderer/utils'
 import { formatErrorMessage } from '@renderer/utils/error'
 import { lightbulbVariants } from '@renderer/utils/motionVariants'
 import { Button, Divider, Flex, Input, Space, Switch, Tooltip } from 'antd'
 import Link from 'antd/es/typography/Link'
 import { debounce, isEmpty } from 'lodash'
-import { List, Settings2, SquareArrowOutUpRight } from 'lucide-react'
+import { Settings2, SquareArrowOutUpRight } from 'lucide-react'
 import { motion } from 'motion/react'
 import { FC, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -32,6 +37,7 @@ import {
   SettingSubtitle,
   SettingTitle
 } from '..'
+import CustomHeaderPopup from './CustomHeaderPopup'
 import DMXAPISettings from './DMXAPISettings'
 import GithubCopilotSettings from './GithubCopilotSettings'
 import GPUStackSettings from './GPUStackSettings'
@@ -285,6 +291,10 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
     if (provider.type === 'openai') {
       return formatApiHost(apiHost) + 'chat/completions'
     }
+
+    if (provider.type === 'azure-openai') {
+      return formatApiHost(apiHost) + 'openai/v1'
+    }
     return formatApiHost(apiHost) + 'responses'
   }
 
@@ -354,7 +364,7 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
             {t('settings.provider.api_key')}
             {provider.id !== 'copilot' && (
               <Tooltip title={t('settings.provider.api.key.list.open')} mouseEnterDelay={0.5}>
-                <Button type="text" size="small" onClick={openApiKeyList} icon={<List size={14} />} />
+                <Button type="text" size="small" onClick={openApiKeyList} icon={<Settings2 size={14} />} />
               </Tooltip>
             )}
           </SettingSubtitle>
@@ -397,7 +407,15 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
           )}
           {!isDmxapi && (
             <>
-              <SettingSubtitle>{t('settings.provider.api_host')}</SettingSubtitle>
+              <SettingSubtitle style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                {t('settings.provider.api_host')}
+                <Button
+                  type="text"
+                  size="small"
+                  onClick={() => CustomHeaderPopup.show({ provider })}
+                  icon={<Settings2 size={14} />}
+                />
+              </SettingSubtitle>
               <Space.Compact style={{ width: '100%', marginTop: 5 }}>
                 <Input
                   value={apiHost}
@@ -437,6 +455,11 @@ const ProviderSetting: FC<Props> = ({ providerId }) => {
               onBlur={onUpdateApiVersion}
             />
           </Space.Compact>
+          <SettingHelpTextRow style={{ justifyContent: 'space-between' }}>
+            <SettingHelpText style={{ minWidth: 'fit-content' }}>
+              {t('settings.provider.azure.apiversion.tip')}
+            </SettingHelpText>
+          </SettingHelpTextRow>
         </>
       )}
       {provider.id === 'lmstudio' && <LMStudioSettings />}

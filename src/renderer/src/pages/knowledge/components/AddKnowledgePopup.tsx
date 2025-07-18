@@ -1,4 +1,5 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons'
+import { loggerService } from '@logger'
 import AiProvider from '@renderer/aiCore'
 import { HStack } from '@renderer/components/Layout'
 import { TopView } from '@renderer/components/TopView'
@@ -29,6 +30,8 @@ interface ShowParams {
 interface Props extends ShowParams {
   resolve: (data: any) => void
 }
+
+const logger = loggerService.withContext('AddKnowledgePopup')
 
 const PopupContainer: React.FC<Props> = ({ title, resolve }) => {
   const [open, setOpen] = useState(true)
@@ -146,7 +149,7 @@ const PopupContainer: React.FC<Props> = ({ title, resolve }) => {
 
             setDimensions(finalDimensions)
           } catch (error) {
-            console.error('Error getting embedding dimensions:', error)
+            logger.error('Error getting embedding dimensions:', error)
             window.message.error(t('message.error.get_embedding_dimensions') + '\n' + getErrorMessage(error))
             setLoading(false)
             return
@@ -176,7 +179,7 @@ const PopupContainer: React.FC<Props> = ({ title, resolve }) => {
         resolve(_newBase)
       }
     } catch (error) {
-      console.error('Validation failed:', error)
+      logger.error('Validation failed:', error)
     }
   }
   const onCancel = () => {
@@ -333,10 +336,10 @@ const PopupContainer: React.FC<Props> = ({ title, resolve }) => {
               </div>
               <Slider
                 min={1}
-                max={30}
+                max={50}
                 step={1}
                 defaultValue={DEFAULT_KNOWLEDGE_DOCUMENT_COUNT}
-                marks={{ 1: '1', 6: t('knowledge.document_count_default'), 30: '30' }}
+                marks={{ 1: '1', 6: t('knowledge.document_count_default'), 30: '30', 50: '50' }}
                 onChange={(value) => setNewBase({ ...newBase, documentCount: value })}
               />
             </SettingsItem>

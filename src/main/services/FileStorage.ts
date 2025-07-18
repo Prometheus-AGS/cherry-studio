@@ -1,4 +1,5 @@
-import { getFilesDir, getFileType, getTempDir } from '@main/utils/file'
+import { loggerService } from '@logger'
+import { getFilesDir, getFileType, getTempDir, readTextFileWithAutoEncoding } from '@main/utils/file'
 import { documentExts, imageExts, MB } from '@shared/config/constant'
 import { FileMetadata } from '@types'
 import * as crypto from 'crypto'
@@ -10,7 +11,6 @@ import {
   SaveDialogReturnValue,
   shell
 } from 'electron'
-import logger from 'electron-log'
 import * as fs from 'fs'
 import { writeFileSync } from 'fs'
 import { readFile } from 'fs/promises'
@@ -20,6 +20,8 @@ import * as path from 'path'
 import { chdir } from 'process'
 import { v4 as uuidv4 } from 'uuid'
 import WordExtractor from 'word-extractor'
+
+const logger = loggerService.withContext('FileStorage')
 
 class FileStorage {
   private storageDir = getFilesDir()
@@ -38,7 +40,7 @@ class FileStorage {
         fs.mkdirSync(this.tempDir, { recursive: true })
       }
     } catch (error) {
-      logger.error('[FileStorage] Failed to initialize storage directories:', error)
+      logger.error('Failed to initialize storage directories:', error)
       throw error
     }
   }
@@ -55,7 +57,7 @@ class FileStorage {
 
   findDuplicateFile = async (filePath: string): Promise<FileMetadata | null> => {
     const stats = fs.statSync(filePath)
-    console.log('stats', stats, filePath)
+    logger.debug('stats', stats, filePath)
     const fileSize = stats.size
 
     const files = await fs.promises.readdir(this.storageDir)
@@ -136,9 +138,9 @@ class FileStorage {
       if (fileSizeInMB > 1) {
         try {
           await fs.promises.copyFile(sourcePath, destPath)
-          logger.info('[FileStorage] Image compressed successfully:', sourcePath)
+          logger.debug('Image compressed successfully:', sourcePath)
         } catch (jimpError) {
-          logger.error('[FileStorage] Image compression failed:', jimpError)
+          logger.error('Image compression failed:', jimpError)
           await fs.promises.copyFile(sourcePath, destPath)
         }
       } else {
@@ -146,7 +148,7 @@ class FileStorage {
         await fs.promises.copyFile(sourcePath, destPath)
       }
     } catch (error) {
-      logger.error('[FileStorage] Image handling failed:', error)
+      logger.error('Image handling failed:', error)
       // 错误情况下直接复制原文件
       await fs.promises.copyFile(sourcePath, destPath)
     }
@@ -187,6 +189,8 @@ class FileStorage {
       type: fileType,
       count: 1
     }
+
+    logger.debug('File uploaded:', fileMetadata)
 
     return fileMetadata
   }
@@ -229,7 +233,11 @@ class FileStorage {
     await fs.promises.rm(path.join(this.storageDir, id), { recursive: true })
   }
 
-  public readFile = async (_: Electron.IpcMainInvokeEvent, id: string): Promise<string> => {
+  public readFile = async (
+    _: Electron.IpcMainInvokeEvent,
+    id: string,
+    detectEncoding: boolean = false
+  ): Promise<string> => {
     const filePath = path.join(this.storageDir, id)
 
     const fileExtension = path.extname(filePath)
@@ -251,12 +259,21 @@ class FileStorage {
         return data
       } catch (error) {
         chdir(originalCwd)
-        logger.error(error)
+        logger.error('Failed to read file:', error)
         throw error
       }
     }
 
-    return fs.readFileSync(filePath, 'utf8')
+    try {
+      if (detectEncoding) {
+        return readTextFileWithAutoEncoding(filePath)
+      } else {
+        return fs.readFileSync(filePath, 'utf-8')
+      }
+    } catch (error) {
+      logger.error('Failed to read file:', error)
+      throw new Error(`Failed to read file: ${filePath}.`)
+    }
   }
 
   public createTempFile = async (_: Electron.IpcMainInvokeEvent, fileName: string): Promise<string> => {
@@ -304,7 +321,7 @@ class FileStorage {
       const ext = '.png'
       const destPath = path.join(this.storageDir, uuid + ext)
 
-      logger.info('[FileStorage] Saving base64 image:', {
+      logger.debug('Saving base64 image:', {
         storageDir: this.storageDir,
         destPath,
         bufferSize: buffer.length
@@ -331,7 +348,7 @@ class FileStorage {
 
       return fileMetadata
     } catch (error) {
-      logger.error('[FileStorage] Failed to save base64 image:', error)
+      logger.error('Failed to save base64 image:', error)
       throw error
     }
   }
@@ -407,6 +424,19 @@ class FileStorage {
 
   public openPath = async (_: Electron.IpcMainInvokeEvent, path: string): Promise<void> => {
     shell.openPath(path).catch((err) => logger.error('[IPC - Error] Failed to open file:', err))
+  }
+
+  /**
+   * 通过相对路径打开文件，跨设备时使用
+   * @param file
+   */
+  public openFileWithRelativePath = async (_: Electron.IpcMainInvokeEvent, file: FileMetadata): Promise<void> => {
+    const filePath = path.join(this.storageDir, file.name)
+    if (fs.existsSync(filePath)) {
+      shell.openPath(filePath).catch((err) => logger.error('[IPC - Error] Failed to open file:', err))
+    } else {
+      logger.warn('[IPC - Warning] File does not exist:', filePath)
+    }
   }
 
   public save = async (
@@ -532,7 +562,7 @@ class FileStorage {
 
       return fileMetadata
     } catch (error) {
-      logger.error('[FileStorage] Download file error:', error)
+      logger.error('Download file error:', error)
       throw error
     }
   }
@@ -568,9 +598,9 @@ class FileStorage {
 
       // 复制文件
       await fs.promises.copyFile(sourcePath, destPath)
-      logger.info('[FileStorage] File copied successfully:', { from: sourcePath, to: destPath })
+      logger.debug('File copied successfully:', { from: sourcePath, to: destPath })
     } catch (error) {
-      logger.error('[FileStorage] Copy file failed:', error)
+      logger.error('Copy file failed:', error)
       throw error
     }
   }
@@ -578,18 +608,18 @@ class FileStorage {
   public writeFileWithId = async (_: Electron.IpcMainInvokeEvent, id: string, content: string): Promise<void> => {
     try {
       const filePath = path.join(this.storageDir, id)
-      logger.info('[FileStorage] Writing file:', filePath)
+      logger.debug('Writing file:', filePath)
 
       // 确保目录存在
       if (!fs.existsSync(this.storageDir)) {
-        logger.info('[FileStorage] Creating storage directory:', this.storageDir)
+        logger.debug('Creating storage directory:', this.storageDir)
         fs.mkdirSync(this.storageDir, { recursive: true })
       }
 
       await fs.promises.writeFile(filePath, content, 'utf8')
-      logger.info('[FileStorage] File written successfully:', filePath)
+      logger.debug('File written successfully:', filePath)
     } catch (error) {
-      logger.error('[FileStorage] Failed to write file:', error)
+      logger.error('Failed to write file:', error)
       throw error
     }
   }

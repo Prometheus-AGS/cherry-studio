@@ -1,3 +1,4 @@
+import { loggerService } from '@logger'
 import { ApiClientFactory } from '@renderer/aiCore/clients/ApiClientFactory'
 import { BaseApiClient } from '@renderer/aiCore/clients/BaseApiClient'
 import { isDedicatedImageGenerationModel, isFunctionCallingModel } from '@renderer/config/models'
@@ -24,6 +25,8 @@ import { MIDDLEWARE_NAME as ThinkingTagExtractionMiddlewareName } from './middle
 import { MIDDLEWARE_NAME as ToolUseExtractionMiddlewareName } from './middleware/feat/ToolUseExtractionMiddleware'
 import { MiddlewareRegistry } from './middleware/register'
 import { CompletionsParams, CompletionsResult } from './middleware/schemas'
+
+const logger = loggerService.withContext('AiProvider')
 
 export default class AiProvider {
   private apiClient: BaseApiClient
@@ -75,11 +78,12 @@ export default class AiProvider {
     } else {
       // Existing logic for other models
       if (!params.enableReasoning) {
-        builder.remove(ThinkingTagExtractionMiddlewareName)
+        // 这里注释掉不会影响正常的关闭思考,可忽略不计的性能下降
+        // builder.remove(ThinkingTagExtractionMiddlewareName)
         builder.remove(ThinkChunkMiddlewareName)
       }
       // 注意：用client判断会导致typescript类型收窄
-      if (!(this.apiClient instanceof OpenAIAPIClient)) {
+      if (!(this.apiClient instanceof OpenAIAPIClient) && !(this.apiClient instanceof OpenAIResponseAPIClient)) {
         builder.remove(ThinkingTagExtractionMiddlewareName)
       }
       if (!(this.apiClient instanceof AnthropicAPIClient) && !(this.apiClient instanceof OpenAIResponseAPIClient)) {
@@ -97,6 +101,10 @@ export default class AiProvider {
       }
       if (params.callType !== 'chat') {
         builder.remove(AbortHandlerMiddlewareName)
+      }
+      if (params.callType === 'test') {
+        builder.remove(ErrorHandlerMiddlewareName)
+        builder.remove(FinalChunkConsumerMiddlewareName)
       }
     }
 
@@ -119,7 +127,7 @@ export default class AiProvider {
       const dimensions = await this.apiClient.getEmbeddingDimensions(model)
       return dimensions
     } catch (error) {
-      console.error('Error getting embedding dimensions:', error)
+      logger.error('Error getting embedding dimensions:', error)
       throw error
     }
   }

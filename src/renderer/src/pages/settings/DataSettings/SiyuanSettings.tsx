@@ -1,4 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
+import { loggerService } from '@logger'
 import { HStack } from '@renderer/components/Layout'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { IntegrationType, useThirdPartyIntegration } from '@renderer/hooks/useThirdPartyIntegration'
@@ -11,6 +12,8 @@ import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 
 import { SettingDivider, SettingGroup, SettingRow, SettingRowTitle, SettingTitle } from '..'
+
+const logger = loggerService.withContext('SiyuanSettings')
 
 const SiyuanSettings: FC = () => {
   const { t } = useTranslation()
