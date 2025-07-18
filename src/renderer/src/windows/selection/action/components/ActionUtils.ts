@@ -18,7 +18,7 @@ export const processMessages = async (
   topic: Topic,
   promptContent: string,
   setAskId: (id: string) => void,
-  onStream: () => void,
+  onStream: (content: string) => void,
   onFinish: (content: string) => void,
   onError: (error: Error) => void
 ) => {
@@ -38,7 +38,6 @@ export const processMessages = async (
 
     let textBlockId: string | null = null
     let thinkingBlockId: string | null = null
-    let textBlockContent: string = ''
 
     const assistantMessage = getAssistantMessage({
       assistant,
@@ -86,7 +85,7 @@ export const processMessages = async (
                   thinking_millsec: chunk.thinking_millsec
                 })
               }
-              onStream()
+              onStream('')
             }
             break
           case ChunkType.THINKING_COMPLETE:
@@ -132,8 +131,7 @@ export const processMessages = async (
               if (textBlockId) {
                 throttledBlockUpdate(textBlockId, { content: chunk.text })
               }
-              textBlockContent = chunk.text
-              onStream()
+              onStream(chunk.text)
             }
             break
           case ChunkType.TEXT_COMPLETE:
@@ -146,7 +144,7 @@ export const processMessages = async (
                     changes: { content: chunk.text, status: MessageBlockStatus.SUCCESS }
                   })
                 )
-                textBlockContent = chunk.text
+                onFinish(chunk.text)
                 textBlockId = null
               }
             }
@@ -160,7 +158,6 @@ export const processMessages = async (
                   updates: { status: AssistantMessageStatus.SUCCESS }
                 })
               )
-              onFinish(textBlockContent)
             }
             break
           case ChunkType.ERROR:
@@ -185,7 +182,6 @@ export const processMessages = async (
                   }
                 })
               )
-              onFinish(textBlockContent)
             }
             break
         }

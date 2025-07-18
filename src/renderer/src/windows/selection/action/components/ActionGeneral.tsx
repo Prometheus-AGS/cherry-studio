@@ -97,8 +97,9 @@ const ActionGeneral: FC<Props> = React.memo(({ action, scrollToBottom }) => {
     const setAskId = (id: string) => {
       askId.current = id
     }
-    const onStream = () => {
+    const onStream = (content: string) => {
       setIsContented(true)
+      setContentToCopy(content)
       scrollToBottom?.()
     }
     const onFinish = (content: string) => {
