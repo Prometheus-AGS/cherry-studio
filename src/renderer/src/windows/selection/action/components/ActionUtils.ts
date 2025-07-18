@@ -132,6 +132,7 @@ export const processMessages = async (
               if (textBlockId) {
                 throttledBlockUpdate(textBlockId, { content: chunk.text })
               }
+              textBlockContent = chunk.text
               onStream()
             }
             break
