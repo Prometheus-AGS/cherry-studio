@@ -80,26 +80,6 @@ app.post('/completions', async (c) => {
       )
     }
 
-    // Check OpenAI compatibility
-    const supportsOpenAI =
-      model.endpoint_type === 'openai' ||
-      model.endpoint_type === 'openai-response' ||
-      model.supported_endpoint_types?.includes('openai') ||
-      model.supported_endpoint_types?.includes('openai-response')
-
-    if (!supportsOpenAI) {
-      return c.json(
-        {
-          error: {
-            message: `Model "${request.model}" does not support OpenAI-compatible endpoints`,
-            type: 'invalid_request_error',
-            code: 'endpoint_not_supported'
-          }
-        },
-        400
-      )
-    }
-
     // Create OpenAI client
     const client = new OpenAI({
       baseURL: provider.apiHost,
