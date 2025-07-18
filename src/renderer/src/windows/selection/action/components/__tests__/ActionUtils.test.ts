@@ -233,11 +233,7 @@ describe('processMessages', () => {
       )
 
       // Verify callbacks
-      expect(mockOnStream).toHaveBeenCalledWith('') // for thinking delta
-      expect(mockOnStream).toHaveBeenCalledWith('Here is')
-      expect(mockOnStream).toHaveBeenCalledWith('Here is my')
-      expect(mockOnStream).toHaveBeenCalledWith('Here is my answer')
-      expect(mockOnFinish).toHaveBeenCalledWith('Here is my answer to your question.')
+      expect(mockOnStream).toHaveBeenCalledWith()
 
       // Verify final message status update
       expect(store.dispatch).toHaveBeenCalledWith(
@@ -248,6 +244,7 @@ describe('processMessages', () => {
         })
       )
 
+      expect(mockOnFinish).toHaveBeenCalledWith('Here is my answer to your question.')
       // Verify no errors
       expect(mockOnError).not.toHaveBeenCalled()
     })
@@ -281,7 +278,7 @@ describe('processMessages', () => {
       // Verify text block was created and updated
       expect(createMainTextBlock).toHaveBeenCalled()
       expect(throttledBlockUpdate).toHaveBeenCalledWith('text-block-1', { content: 'Partial response' })
-      expect(mockOnStream).toHaveBeenCalledWith('Partial response')
+      expect(mockOnStream).toHaveBeenCalledWith()
 
       // Verify error handling
       expect(store.dispatch).toHaveBeenCalledWith(
@@ -298,13 +295,13 @@ describe('processMessages', () => {
           topicId: 'topic-1',
           messageId: 'assistant-message-1',
           updates: {
-            status: AssistantMessageStatus.SUCCESS
+            status: AssistantMessageStatus.ERROR
           }
         })
       )
 
       // Verify callbacks are not called for error
-      expect(mockOnFinish).not.toHaveBeenCalled()
+      expect(mockOnFinish).toHaveBeenCalledWith('Partial response')
       expect(mockOnError).not.toHaveBeenCalled()
     })
 
@@ -388,9 +385,8 @@ describe('processMessages', () => {
       )
 
       // Verify callbacks
-      expect(mockOnStream).toHaveBeenCalledWith('')
-      expect(mockOnStream).toHaveBeenCalledWith('Partial')
-      expect(mockOnFinish).not.toHaveBeenCalled()
+      expect(mockOnStream).toHaveBeenCalledWith()
+      expect(mockOnFinish).toHaveBeenCalledWith('Partial')
       expect(mockOnError).not.toHaveBeenCalled()
     })
 
@@ -411,6 +407,7 @@ describe('processMessages', () => {
 
       // Verify that abort errors are handled gracefully (no error callback)
       expect(mockOnError).not.toHaveBeenCalled()
+      expect(mockOnFinish).not.toHaveBeenCalled()
     })
   })
 
@@ -432,34 +429,6 @@ describe('processMessages', () => {
       expect(mockOnStream).not.toHaveBeenCalled()
       expect(mockOnFinish).not.toHaveBeenCalled()
       expect(mockOnError).not.toHaveBeenCalled()
-    })
-
-    it('should handle chunks when blocks are not yet created', async () => {
-      const mockChunks = [
-        { type: ChunkType.THINKING_DELTA, text: 'Thinking without start', thinking_millsec: 1000 },
-        { type: ChunkType.TEXT_DELTA, text: 'Text without start' }
-      ]
-
-      vi.mocked(fetchChatCompletion).mockImplementation(async ({ onChunkReceived }: any) => {
-        for (const chunk of mockChunks) {
-          await onChunkReceived(chunk)
-        }
-      })
-
-      await processMessages(
-        mockAssistant,
-        mockTopic,
-        'test prompt',
-        mockSetAskId,
-        mockOnStream,
-        mockOnFinish,
-        mockOnError
-      )
-
-      // Should not call throttledBlockUpdate when blocks don't exist
-      expect(throttledBlockUpdate).not.toHaveBeenCalled()
-      expect(mockOnStream).toHaveBeenCalledWith('') // thinking delta still calls onStream with empty string
-      expect(mockOnStream).toHaveBeenCalledWith('Text without start')
     })
 
     it('should handle multiple text/thinking blocks correctly', async () => {

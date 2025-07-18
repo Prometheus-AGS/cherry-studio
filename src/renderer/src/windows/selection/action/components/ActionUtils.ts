@@ -18,7 +18,7 @@ export const processMessages = async (
   topic: Topic,
   promptContent: string,
   setAskId: (id: string) => void,
-  onStream: (content: string) => void,
+  onStream: () => void,
   onFinish: (content: string) => void,
   onError: (error: Error) => void
 ) => {
@@ -38,6 +38,7 @@ export const processMessages = async (
 
     let textBlockId: string | null = null
     let thinkingBlockId: string | null = null
+    let textBlockContent = ''
 
     const assistantMessage = getAssistantMessage({
       assistant,
@@ -85,7 +86,7 @@ export const processMessages = async (
                   thinking_millsec: chunk.thinking_millsec
                 })
               }
-              onStream('')
+              onStream()
             }
             break
           case ChunkType.THINKING_COMPLETE:
@@ -131,7 +132,8 @@ export const processMessages = async (
               if (textBlockId) {
                 throttledBlockUpdate(textBlockId, { content: chunk.text })
               }
-              onStream(chunk.text)
+              onStream()
+              textBlockContent = chunk.text
             }
             break
           case ChunkType.TEXT_COMPLETE:
@@ -145,6 +147,7 @@ export const processMessages = async (
                   })
                 )
                 onFinish(chunk.text)
+                textBlockContent = chunk.text
                 textBlockId = null
               }
             }
@@ -158,6 +161,7 @@ export const processMessages = async (
                   updates: { status: AssistantMessageStatus.SUCCESS }
                 })
               )
+              textBlockContent = ''
             }
             break
           case ChunkType.ERROR:
@@ -178,10 +182,12 @@ export const processMessages = async (
                   topicId: topic.id,
                   messageId: assistantMessage.id,
                   updates: {
-                    status: isAbortError(chunk.error) ? AssistantMessageStatus.PAUSED : AssistantMessageStatus.SUCCESS
+                    status: isAbortError(chunk.error) ? AssistantMessageStatus.PAUSED : AssistantMessageStatus.ERROR
                   }
                 })
               )
+              onFinish(textBlockContent)
+              textBlockContent = ''
             }
             break
         }

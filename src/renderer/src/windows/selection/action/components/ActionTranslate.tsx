@@ -103,9 +103,8 @@ const ActionTranslate: FC<Props> = ({ action, scrollToBottom }) => {
     const setAskId = (id: string) => {
       askId.current = id
     }
-    const onStream = (content: string) => {
+    const onStream = () => {
       setIsContented(true)
-      setContentToCopy(content)
       scrollToBottom?.()
     }
     const onFinish = (content: string) => {
