@@ -645,44 +645,5 @@ export function registerIpc(mainWindow: BrowserWindow, app: Electron.App) {
   })
 
   // API Server
-  ipcMain.handle(IpcChannel.ApiServer_Start, async () => {
-    try {
-      await apiServerService.start()
-      return { success: true }
-    } catch (error) {
-      log.error('Failed to start API server:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-    }
-  })
-
-  ipcMain.handle(IpcChannel.ApiServer_Stop, async () => {
-    try {
-      await apiServerService.stop()
-      return { success: true }
-    } catch (error) {
-      log.error('Failed to stop API server:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-    }
-  })
-
-  ipcMain.handle(IpcChannel.ApiServer_Restart, async () => {
-    try {
-      await apiServerService.restart()
-      return { success: true }
-    } catch (error) {
-      log.error('Failed to restart API server:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-    }
-  })
-
-  ipcMain.handle(IpcChannel.ApiServer_GetStatus, () => {
-    return {
-      running: apiServerService.isRunning(),
-      config: apiServerService.getCurrentConfig()
-    }
-  })
-
-  ipcMain.handle(IpcChannel.ApiServer_GetConfig, () => {
-    return apiServerService.getCurrentConfig()
-  })
+  apiServerService.registerIpcHandlers()
 }

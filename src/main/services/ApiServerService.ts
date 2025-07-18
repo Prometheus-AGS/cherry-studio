@@ -1,3 +1,6 @@
+import { IpcChannel } from '@shared/IpcChannel'
+import { ipcMain } from 'electron'
+
 import { apiServer } from '../apiServer'
 import { config } from '../apiServer/config'
 import { loggerService } from './LoggerService'
@@ -54,6 +57,50 @@ export class ApiServerService {
       port: serverConfig.port,
       apiKey: serverConfig.apiKey
     }
+  }
+
+  registerIpcHandlers(): void {
+    // API Server
+    ipcMain.handle(IpcChannel.ApiServer_Start, async () => {
+      try {
+        await this.start()
+        return { success: true }
+      } catch (error) {
+        logger.error('Failed to start API server:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      }
+    })
+
+    ipcMain.handle(IpcChannel.ApiServer_Stop, async () => {
+      try {
+        await this.stop()
+        return { success: true }
+      } catch (error) {
+        logger.error('Failed to stop API server:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      }
+    })
+
+    ipcMain.handle(IpcChannel.ApiServer_Restart, async () => {
+      try {
+        await this.restart()
+        return { success: true }
+      } catch (error) {
+        logger.error('Failed to restart API server:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      }
+    })
+
+    ipcMain.handle(IpcChannel.ApiServer_GetStatus, () => {
+      return {
+        running: this.isRunning(),
+        config: this.getCurrentConfig()
+      }
+    })
+
+    ipcMain.handle(IpcChannel.ApiServer_GetConfig, () => {
+      return this.getCurrentConfig()
+    })
   }
 }
 
