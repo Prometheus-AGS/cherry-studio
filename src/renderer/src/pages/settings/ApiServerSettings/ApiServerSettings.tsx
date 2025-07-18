@@ -1,5 +1,6 @@
 import { CopyOutlined, GlobalOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useTheme } from '@renderer/context/ThemeProvider'
+import { loggerService } from '@renderer/services/LoggerService'
 import { RootState, useAppDispatch } from '@renderer/store'
 import { setApiServerApiKey, setApiServerPort } from '@renderer/store/settings'
 import { IpcChannel } from '@shared/IpcChannel'
@@ -10,6 +11,7 @@ import styled from 'styled-components'
 
 import { SettingContainer } from '..'
 
+const logger = loggerService.withContext('ApiServerSettings')
 const { Text, Title } = Typography
 
 const ConfigCard = styled(Card)`
@@ -141,7 +143,7 @@ const ApiServerSettings: FC = () => {
       const status = await window.electron.ipcRenderer.invoke(IpcChannel.ApiServer_GetStatus)
       setApiServerRunning(status.running)
     } catch (error) {
-      console.error('Failed to check API server status:', error)
+      logger.error('Failed to check API server status:', error)
     }
   }
 
@@ -315,6 +317,7 @@ const ApiServerSettings: FC = () => {
                 readOnly
                 style={{ flex: 1, minWidth: 300, maxWidth: 500 }}
                 placeholder="API key will be auto-generated"
+                disabled={apiServerRunning}
               />
               <ActionButtonGroup>
                 <Tooltip title="Copy API Key">
@@ -322,7 +325,9 @@ const ApiServerSettings: FC = () => {
                     Copy
                   </Button>
                 </Tooltip>
-                <Button onClick={regenerateApiKey}>Regenerate</Button>
+                <Button onClick={regenerateApiKey} disabled={apiServerRunning}>
+                  Regenerate
+                </Button>
               </ActionButtonGroup>
             </Flex>
             <Text type="secondary" style={{ fontSize: 12, lineHeight: 1.4, marginTop: 8, display: 'block' }}>

@@ -16,7 +16,7 @@ class ConfigManager {
 
   async load(): Promise<Config> {
     try {
-      const settings = reduxService.selectSync('state.settings')
+      const settings = await reduxService.select('state.settings')
 
       // Auto-generate API key if not set
       if (!settings?.apiServer?.apiKey) {
