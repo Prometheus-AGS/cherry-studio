@@ -176,7 +176,6 @@ export const processMessages = async (
                   })
                 )
               }
-              console.log(chunk)
               const isErrorTypeAbort = isAbortError(chunk.error)
               let pauseErrorLanguagePlaceholder = ''
               if (isErrorTypeAbort) {
