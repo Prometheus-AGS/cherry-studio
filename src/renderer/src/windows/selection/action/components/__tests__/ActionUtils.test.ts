@@ -40,12 +40,14 @@ vi.mock('@renderer/store/thunk/messageThunk', () => ({
 }))
 
 vi.mock('@renderer/utils/error', () => ({
-  isAbortError: vi.fn()
+  isAbortError: vi.fn(),
+  formatErrorMessage: vi.fn()
 }))
 
 vi.mock('@renderer/utils/messageUtils/create', () => ({
   createMainTextBlock: vi.fn(),
-  createThinkingBlock: vi.fn()
+  createThinkingBlock: vi.fn(),
+  createErrorBlock: vi.fn()
 }))
 
 // Import mocked modules
@@ -55,8 +57,8 @@ import store from '@renderer/store'
 import { updateOneBlock } from '@renderer/store/messageBlock'
 import { newMessagesActions } from '@renderer/store/newMessage'
 import { cancelThrottledBlockUpdate, throttledBlockUpdate } from '@renderer/store/thunk/messageThunk'
-import { isAbortError } from '@renderer/utils/error'
-import { createMainTextBlock, createThinkingBlock } from '@renderer/utils/messageUtils/create'
+import { formatErrorMessage, isAbortError } from '@renderer/utils/error'
+import { createErrorBlock, createMainTextBlock, createThinkingBlock } from '@renderer/utils/messageUtils/create'
 
 describe('processMessages', () => {
   let mockAssistant: Assistant
@@ -120,7 +122,14 @@ describe('processMessages', () => {
       status: MessageBlockStatus.STREAMING
     } as any)
 
+    vi.mocked(createErrorBlock).mockReturnValue({
+      id: 'error-block-1',
+      content: '',
+      status: MessageBlockStatus.ERROR
+    } as any)
+
     vi.mocked(isAbortError).mockReturnValue(false)
+    vi.mocked(formatErrorMessage).mockReturnValue('Formatted error message')
   })
 
   afterEach(() => {
@@ -290,6 +299,16 @@ describe('processMessages', () => {
         })
       )
 
+      // Verify error block creation
+      expect(createErrorBlock).toHaveBeenCalledWith(
+        'assistant-message-1',
+        expect.objectContaining({
+          name: 'Error',
+          message: 'Stream processing error'
+        }),
+        { status: MessageBlockStatus.ERROR }
+      )
+
       expect(store.dispatch).toHaveBeenCalledWith(
         newMessagesActions.updateMessage({
           topicId: 'topic-1',
@@ -300,7 +319,7 @@ describe('processMessages', () => {
         })
       )
 
-      // Verify callbacks are not called for error
+      // Verify onFinish is called with text content accumulated so far
       expect(mockOnFinish).toHaveBeenCalledWith('Partial response')
       expect(mockOnError).not.toHaveBeenCalled()
     })
@@ -382,6 +401,16 @@ describe('processMessages', () => {
             status: AssistantMessageStatus.PAUSED
           }
         })
+      )
+
+      // Verify error block creation for abort
+      expect(createErrorBlock).toHaveBeenCalledWith(
+        'assistant-message-1',
+        expect.objectContaining({
+          name: 'Error',
+          message: 'pause_placeholder'
+        }),
+        { status: MessageBlockStatus.PAUSED }
       )
 
       // Verify callbacks
