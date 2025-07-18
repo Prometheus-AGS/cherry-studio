@@ -28,7 +28,7 @@ export class ChatCompletionService {
     try {
       logger.info('Getting available models from providers')
 
-      const models = listAllAvailableModels()
+      const models = await listAllAvailableModels()
 
       const modelData: ModelData[] = models.map((model) => {
         const openAIModel = transformModelToOpenAI(model)
@@ -113,7 +113,7 @@ export class ChatCompletionService {
       }
 
       // Get provider for the model
-      const provider = getProviderByModel(request.model!)
+      const provider = await getProviderByModel(request.model!)
       if (!provider) {
         throw new Error(`Provider not found for model: ${request.model}`)
       }
@@ -171,7 +171,7 @@ export class ChatCompletionService {
       }
 
       // Get provider for the model
-      const provider = getProviderByModel(request.model!)
+      const provider = await getProviderByModel(request.model!)
       if (!provider) {
         throw new Error(`Provider not found for model: ${request.model}`)
       }

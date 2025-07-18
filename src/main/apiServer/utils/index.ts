@@ -12,9 +12,10 @@ export interface OpenAICompatibleModel {
   owned_by: string
 }
 
-export function getAvailableProviders(): Provider[] {
+export async function getAvailableProviders(): Promise<Provider[]> {
   try {
-    const providers = reduxService.selectSync('state.llm.providers')
+    // Wait for store to be ready before accessing providers
+    const providers = await reduxService.select('state.llm.providers')
     if (!providers || !Array.isArray(providers)) {
       logger.warn('No providers found in Redux store, returning empty array')
       return []
@@ -26,9 +27,9 @@ export function getAvailableProviders(): Provider[] {
   }
 }
 
-export function listAllAvailableModels(): Model[] {
+export async function listAllAvailableModels(): Promise<Model[]> {
   try {
-    const providers = getAvailableProviders()
+    const providers = await getAvailableProviders()
     return providers.map((p: Provider) => p.models || []).flat() as Model[]
   } catch (error) {
     logger.error('Failed to list available models:', error)
@@ -36,14 +37,14 @@ export function listAllAvailableModels(): Model[] {
   }
 }
 
-export function getProviderByModel(model: string): Provider | undefined {
+export async function getProviderByModel(model: string): Promise<Provider | undefined> {
   try {
     if (!model || typeof model !== 'string') {
       logger.warn('Invalid model parameter:', model)
       return undefined
     }
 
-    const providers = getAvailableProviders()
+    const providers = await getAvailableProviders()
     const modelInfo = model.split(':')
 
     if (modelInfo.length < 2) {

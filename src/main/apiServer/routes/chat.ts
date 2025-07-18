@@ -50,7 +50,7 @@ app.post('/completions', async (c) => {
     }
 
     // Get provider
-    const provider = getProviderByModel(request.model)
+    const provider = await getProviderByModel(request.model)
     if (!provider) {
       return c.json(
         {
