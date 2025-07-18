@@ -38,7 +38,7 @@ export const processMessages = async (
 
     let textBlockId: string | null = null
     let thinkingBlockId: string | null = null
-    let textBlockContent = ''
+    let textBlockContent: string = ''
 
     const assistantMessage = getAssistantMessage({
       assistant,
@@ -161,7 +161,6 @@ export const processMessages = async (
                   updates: { status: AssistantMessageStatus.SUCCESS }
                 })
               )
-              textBlockContent = ''
             }
             break
           case ChunkType.ERROR:
@@ -212,7 +211,6 @@ export const processMessages = async (
                 })
               )
               onFinish(textBlockContent)
-              textBlockContent = ''
             }
             break
         }
