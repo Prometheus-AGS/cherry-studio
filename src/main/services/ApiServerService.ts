@@ -1,4 +1,5 @@
 import Logger from 'electron-log'
+
 import { apiServer } from '../apiServer'
 
 export interface ApiServerConfig {
@@ -46,10 +47,10 @@ export class ApiServerService {
   }
 
   getCurrentConfig(): ApiServerConfig {
-    const config = apiServer.isRunning() ? 
-      require('../apiServer/config').config.get() : 
-      { port: 13333, apiKey: 'not-loaded' }
-    
+    const config = apiServer.isRunning()
+      ? require('../apiServer/config').config.get()
+      : { port: 13333, apiKey: 'not-loaded' }
+
     return {
       port: config.port,
       apiKey: config.apiKey
