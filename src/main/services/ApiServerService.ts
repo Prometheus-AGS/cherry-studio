@@ -1,4 +1,5 @@
 import { apiServer } from '../apiServer'
+import { config } from '../apiServer/config'
 import { loggerService } from './LoggerService'
 const logger = loggerService.withContext('ApiServerService')
 
@@ -47,13 +48,11 @@ export class ApiServerService {
   }
 
   getCurrentConfig(): ApiServerConfig {
-    const config = apiServer.isRunning()
-      ? require('../apiServer/config').config.get()
-      : { port: 13333, apiKey: 'not-loaded' }
+    const serverConfig = apiServer.isRunning() ? config.get() : { port: 13333, apiKey: 'not-loaded' }
 
     return {
-      port: config.port,
-      apiKey: config.apiKey
+      port: serverConfig.port,
+      apiKey: serverConfig.apiKey
     }
   }
 }
