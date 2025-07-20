@@ -352,6 +352,132 @@ class MCPApiService extends EventEmitter {
     }
   }
 
+  async getTools(serverId: string): Promise<any[]> {
+    try {
+      logger.silly(`getTools called for server ID: ${serverId}`)
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (!server) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Use MCPService to get tools
+      const tools = await McpService.listTools(null as any, server)
+      logger.silly(`Retrieved ${tools.length} tools for server: ${server.name}`)
+
+      return tools
+    } catch (error) {
+      logger.error('Failed to get tools:', error)
+      throw error
+    }
+  }
+
+  async callTool(serverId: string, toolName: string, args: any, callId?: string): Promise<any> {
+    try {
+      logger.silly(`callTool called for server ID: ${serverId}, tool: ${toolName}`)
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (!server) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Use MCPService to call tool
+      const result = await McpService.callTool(null as any, { server, name: toolName, args, callId })
+      logger.info(`Called tool ${toolName} on server: ${server.name}`)
+
+      return result
+    } catch (error) {
+      logger.error(`Failed to call tool ${toolName}:`, error)
+      throw error
+    }
+  }
+
+  async getPrompts(serverId: string): Promise<any[]> {
+    try {
+      logger.silly(`getPrompts called for server ID: ${serverId}`)
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (!server) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Use MCPService to get prompts
+      const prompts = await McpService.listPrompts(null as any, server)
+      logger.silly(`Retrieved ${prompts.length} prompts for server: ${server.name}`)
+
+      return prompts
+    } catch (error) {
+      logger.error('Failed to get prompts:', error)
+      throw error
+    }
+  }
+
+  async getPrompt(serverId: string, promptName: string, args?: any): Promise<any> {
+    try {
+      logger.silly(`getPrompt called for server ID: ${serverId}, prompt: ${promptName}`)
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (!server) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Use MCPService to get prompt
+      const result = await McpService.getPrompt(null as any, { server, name: promptName, args })
+      logger.info(`Retrieved prompt ${promptName} from server: ${server.name}`)
+
+      return result
+    } catch (error) {
+      logger.error(`Failed to get prompt ${promptName}:`, error)
+      throw error
+    }
+  }
+
+  async getResources(serverId: string): Promise<any[]> {
+    try {
+      logger.silly(`getResources called for server ID: ${serverId}`)
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (!server) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Use MCPService to get resources
+      const resources = await McpService.listResources(null as any, server)
+      logger.silly(`Retrieved ${resources.length} resources for server: ${server.name}`)
+
+      return resources
+    } catch (error) {
+      logger.error('Failed to get resources:', error)
+      throw error
+    }
+  }
+
+  async getResource(serverId: string, uri: string): Promise<any> {
+    try {
+      logger.silly(`getResource called for server ID: ${serverId}, URI: ${uri}`)
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (!server) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Use MCPService to get resource
+      const result = await McpService.getResource(null as any, { server, uri })
+      logger.info(`Retrieved resource ${uri} from server: ${server.name}`)
+
+      return result
+    } catch (error) {
+      logger.error(`Failed to get resource ${uri}:`, error)
+      throw error
+    }
+  }
+
   async getServerSession(serverId: string): Promise<MCPSession> {
     try {
       const session = this.sessions.get(serverId)

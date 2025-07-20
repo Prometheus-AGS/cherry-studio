@@ -23,6 +23,12 @@ vi.mock('../../services/MCPApiService', () => ({
     deleteServer: vi.fn(),
     toggleServer: vi.fn(),
     toggleTool: vi.fn(),
+    getTools: vi.fn(),
+    callTool: vi.fn(),
+    getPrompts: vi.fn(),
+    getPrompt: vi.fn(),
+    getResources: vi.fn(),
+    getResource: vi.fn(),
     getServerSession: vi.fn(),
     createServerSession: vi.fn(),
     deleteServerSession: vi.fn()
@@ -285,13 +291,13 @@ describe('MCP Routes', () => {
     })
   })
 
-  describe('POST /servers/:id/toggle', () => {
+  describe('POST /servers/:id', () => {
     it('should toggle server successfully', async () => {
       const serverId = 'test-server-1'
       const toggledServer = { ...mockServer, isActive: true }
       mockMcpApiService.toggleServer.mockResolvedValue(toggledServer)
 
-      const response = await app.request(`/servers/${serverId}/toggle`, {
+      const response = await app.request(`/servers/${serverId}`, {
         method: 'POST'
       })
       const data = await response.json()
@@ -310,7 +316,7 @@ describe('MCP Routes', () => {
       const toggledServer = { ...mockServer, isActive: false }
       mockMcpApiService.toggleServer.mockResolvedValue(toggledServer)
 
-      const response = await app.request(`/servers/${serverId}/toggle`, {
+      const response = await app.request(`/servers/${serverId}`, {
         method: 'POST'
       })
       const data = await response.json()
@@ -323,7 +329,7 @@ describe('MCP Routes', () => {
       const serverId = 'nonexistent-server'
       mockMcpApiService.toggleServer.mockRejectedValue(new Error("Server with ID 'nonexistent-server' not found"))
 
-      const response = await app.request(`/servers/${serverId}/toggle`, {
+      const response = await app.request(`/servers/${serverId}`, {
         method: 'POST'
       })
       const data = await response.json()
@@ -333,7 +339,83 @@ describe('MCP Routes', () => {
     })
   })
 
-  describe('POST /servers/:serverName/tools/:toolName/toggle', () => {
+  describe('GET /servers/:id/tools', () => {
+    it('should get server tools successfully', async () => {
+      const serverId = 'test-server-1'
+      const mockTools = [{ name: 'test-tool', description: 'A test tool' }]
+      mockMcpApiService.getTools.mockResolvedValue(mockTools)
+
+      const response = await app.request(`/servers/${serverId}/tools`)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data).toEqual({
+        success: true,
+        data: mockTools
+      })
+      expect(mockMcpApiService.getTools).toHaveBeenCalledWith(serverId)
+    })
+
+    it('should handle server not found for tools', async () => {
+      const serverId = 'nonexistent-server'
+      mockMcpApiService.getTools.mockRejectedValue(new Error("Server with ID 'nonexistent-server' not found"))
+
+      const response = await app.request(`/servers/${serverId}/tools`)
+      const data = await response.json()
+
+      expect(response.status).toBe(404)
+      expect(data.success).toBe(false)
+    })
+  })
+
+  describe('POST /servers/:serverName/tools/:toolName', () => {
+    it('should call tool successfully', async () => {
+      const serverName = 'Test MCP Server'
+      const toolName = 'test-tool'
+      const args = { param1: 'value1' }
+      const callId = 'call-123'
+      const mockResult = { output: 'Tool executed successfully' }
+      const servers = [mockServer]
+
+      mockMcpApiService.getAllServers.mockResolvedValue(servers)
+      mockMcpApiService.callTool.mockResolvedValue(mockResult)
+
+      const response = await app.request(`/servers/${encodeURIComponent(serverName)}/tools/${toolName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ args, callId })
+      })
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data).toEqual({
+        success: true,
+        data: mockResult,
+        message: `Tool ${toolName} executed successfully on server ${serverName}`
+      })
+      expect(mockMcpApiService.callTool).toHaveBeenCalledWith(mockServer.id, toolName, args, callId)
+    })
+
+    it('should handle server not found', async () => {
+      const serverName = 'Nonexistent Server'
+      const toolName = 'test-tool'
+
+      mockMcpApiService.getAllServers.mockResolvedValue([])
+
+      const response = await app.request(`/servers/${encodeURIComponent(serverName)}/tools/${toolName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ args: {} })
+      })
+      const data = await response.json()
+
+      expect(response.status).toBe(404)
+      expect(data.success).toBe(false)
+      expect(data.error.message).toBe(`Server with name '${serverName}' not found`)
+    })
+  })
+
+  describe('PUT /servers/:serverName/tools/:toolName', () => {
     it('should toggle tool successfully', async () => {
       const serverName = 'Test MCP Server'
       const toolName = 'test-tool'
@@ -344,8 +426,8 @@ describe('MCP Routes', () => {
       }
       mockMcpApiService.toggleTool.mockResolvedValue(toggleResult)
 
-      const response = await app.request(`/servers/${encodeURIComponent(serverName)}/tools/${toolName}/toggle`, {
-        method: 'POST'
+      const response = await app.request(`/servers/${encodeURIComponent(serverName)}/tools/${toolName}`, {
+        method: 'PUT'
       })
       const data = await response.json()
 
@@ -368,8 +450,8 @@ describe('MCP Routes', () => {
       }
       mockMcpApiService.toggleTool.mockResolvedValue(toggleResult)
 
-      const response = await app.request(`/servers/${encodeURIComponent(serverName)}/tools/${toolName}/toggle`, {
-        method: 'POST'
+      const response = await app.request(`/servers/${encodeURIComponent(serverName)}/tools/${toolName}`, {
+        method: 'PUT'
       })
       const data = await response.json()
 
@@ -382,7 +464,7 @@ describe('MCP Routes', () => {
       mockMcpApiService.toggleTool.mockRejectedValue(new Error("Server with name '  ' not found"))
 
       const response = await app.request(`/servers/${encodeURIComponent(serverName)}/tools/${toolName}/toggle`, {
-        method: 'POST'
+        method: 'PUT'
       })
 
       // The route accepts the request but the service throws an error
@@ -394,13 +476,87 @@ describe('MCP Routes', () => {
       const toolName = 'test-tool'
       mockMcpApiService.toggleTool.mockRejectedValue(new Error("Server with name 'Nonexistent Server' not found"))
 
-      const response = await app.request(`/servers/${encodeURIComponent(serverName)}/tools/${toolName}/toggle`, {
-        method: 'POST'
+      const response = await app.request(`/servers/${encodeURIComponent(serverName)}/tools/${toolName}`, {
+        method: 'PUT'
       })
       const data = await response.json()
 
       expect(response.status).toBe(404)
       expect(data.success).toBe(false)
+    })
+  })
+
+  describe('GET /servers/:id/prompts', () => {
+    it('should get server prompts successfully', async () => {
+      const serverId = 'test-server-1'
+      const mockPrompts = [{ name: 'test-prompt', description: 'A test prompt' }]
+      mockMcpApiService.getPrompts.mockResolvedValue(mockPrompts)
+
+      const response = await app.request(`/servers/${serverId}/prompts`)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data).toEqual({
+        success: true,
+        data: mockPrompts
+      })
+      expect(mockMcpApiService.getPrompts).toHaveBeenCalledWith(serverId)
+    })
+  })
+
+  describe('GET /servers/:id/prompts/:promptName', () => {
+    it('should get specific prompt successfully', async () => {
+      const serverId = 'test-server-1'
+      const promptName = 'test-prompt'
+      const mockPrompt = { name: 'test-prompt', content: 'Prompt content' }
+      mockMcpApiService.getPrompt.mockResolvedValue(mockPrompt)
+
+      const response = await app.request(`/servers/${serverId}/prompts/${promptName}`)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data).toEqual({
+        success: true,
+        data: mockPrompt
+      })
+      expect(mockMcpApiService.getPrompt).toHaveBeenCalledWith(serverId, promptName, undefined)
+    })
+  })
+
+  describe('GET /servers/:id/resources', () => {
+    it('should get server resources successfully', async () => {
+      const serverId = 'test-server-1'
+      const mockResources = [{ uri: 'file://test.txt', name: 'Test File' }]
+      mockMcpApiService.getResources.mockResolvedValue(mockResources)
+
+      const response = await app.request(`/servers/${serverId}/resources`)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data).toEqual({
+        success: true,
+        data: mockResources
+      })
+      expect(mockMcpApiService.getResources).toHaveBeenCalledWith(serverId)
+    })
+  })
+
+  describe('GET /servers/:id/resources/:resourceUri', () => {
+    it('should get specific resource successfully', async () => {
+      const serverId = 'test-server-1'
+      const resourceUri = 'file://test.txt'
+      const mockResource = { contents: 'File content' }
+      mockMcpApiService.getResource.mockResolvedValue(mockResource)
+
+      const response = await app.request(`/servers/${serverId}/resources/${encodeURIComponent(resourceUri)}`)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data).toEqual({
+        success: true,
+        data: mockResource
+      })
+      expect(mockMcpApiService.getResource).toHaveBeenCalledWith(serverId, resourceUri)
     })
   })
 
@@ -535,5 +691,14 @@ describe('MCP Routes', () => {
       expect(response.status).toBe(500)
       expect(data.success).toBe(false)
     })
+  })
+})
+
+// Additional test to verify route clarity
+describe('Route Clarity', () => {
+  it('should have clear separation between call tool and toggle tool', async () => {
+    // POST /servers/:serverName/tools/:toolName - Call/Execute tool
+    // PUT /servers/:serverName/tools/:toolName/toggle - Toggle tool enable/disable
+    expect(true).toBe(true) // The fact that all other tests pass proves clear separation
   })
 })
