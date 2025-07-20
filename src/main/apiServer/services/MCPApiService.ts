@@ -1,0 +1,492 @@
+import { MCPServer } from '@types'
+import { EventEmitter } from 'events'
+
+import { loggerService } from '../../services/LoggerService'
+import McpService from '../../services/MCPService'
+import { reduxService } from '../../services/ReduxService'
+
+const logger = loggerService.withContext('MCPApiService')
+
+interface MCPSession {
+  id: string
+  serverId: string
+  serverName: string
+  isConnected: boolean
+  connectionTime?: Date
+  lastActivity?: Date
+  error?: string
+}
+
+interface ToolToggleResult {
+  serverName: string
+  toolName: string
+  enabled: boolean
+}
+
+/**
+ * MCPApiService - API layer for MCP server management
+ *
+ * This service provides a REST API interface for MCP servers while integrating
+ * with the existing application architecture:
+ *
+ * 1. Uses ReduxService to access the renderer's Redux store directly
+ * 2. Syncs changes back to the renderer via Redux actions
+ * 3. Leverages existing MCPService for actual server connections
+ * 4. Provides session management for API clients
+ */
+class MCPApiService extends EventEmitter {
+  private sessions: Map<string, MCPSession> = new Map()
+
+  constructor() {
+    super()
+    logger.silly('MCPApiService initialized')
+  }
+
+  /**
+   * Get servers directly from Redux store
+   */
+  private async getServersFromRedux(): Promise<MCPServer[]> {
+    try {
+      logger.silly('Getting servers from Redux store')
+
+      // Try to get from cache first (faster)
+      const cachedServers = reduxService.selectSync<MCPServer[]>('state.mcp.servers')
+      if (cachedServers && Array.isArray(cachedServers)) {
+        logger.silly(`Found ${cachedServers.length} servers in Redux cache`)
+        return cachedServers
+      }
+
+      // If cache is not available, get fresh data
+      const servers = await reduxService.select<MCPServer[]>('state.mcp.servers')
+      logger.silly(`Fetched ${servers?.length || 0} servers from Redux store`)
+      return servers || []
+    } catch (error) {
+      logger.error('Failed to get servers from Redux:', error)
+      return []
+    }
+  }
+
+  /**
+   * Sync changes back to renderer via Redux actions
+   */
+  private async syncToRedux(server: MCPServer, action: 'add' | 'update' | 'delete'): Promise<void> {
+    try {
+      logger.silly(`Syncing ${action} action to Redux for server: ${server.name}`)
+
+      switch (action) {
+        case 'add':
+          await reduxService.dispatch({
+            type: 'mcp/addMCPServer',
+            payload: server
+          })
+          break
+        case 'update':
+          await reduxService.dispatch({
+            type: 'mcp/updateMCPServer',
+            payload: server
+          })
+          break
+        case 'delete':
+          await reduxService.dispatch({
+            type: 'mcp/deleteMCPServer',
+            payload: server.id
+          })
+          break
+      }
+
+      logger.silly(`Successfully synced ${action} to Redux`)
+    } catch (error) {
+      logger.error('Failed to sync to Redux:', error)
+      throw error
+    }
+  }
+
+  async getAllServers(): Promise<MCPServer[]> {
+    try {
+      logger.silly('getAllServers called')
+      const servers = await this.getServersFromRedux()
+      logger.silly(`Returning ${servers.length} servers`)
+      return servers
+    } catch (error) {
+      logger.error('Failed to get all servers:', error)
+      throw new Error('Failed to retrieve servers')
+    }
+  }
+
+  async createServer(serverData: Partial<MCPServer>): Promise<MCPServer> {
+    try {
+      logger.silly(`createServer called for: ${serverData.name}`)
+
+      // Validate required fields
+      if (!serverData.name) {
+        throw new Error('Server name is required')
+      }
+
+      // Check if server with same name already exists
+      const existingServers = await this.getServersFromRedux()
+      const existingServer = existingServers.find((server) => server.name === serverData.name)
+      if (existingServer) {
+        throw new Error(`Server with name '${serverData.name}' already exists`)
+      }
+
+      // Generate unique ID
+      const id = `mcp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+
+      // Create server object with defaults
+      const server: MCPServer = {
+        id,
+        name: serverData.name,
+        type: serverData.type || 'stdio',
+        description: serverData.description || '',
+        baseUrl: serverData.baseUrl,
+        command: serverData.command,
+        registryUrl: serverData.registryUrl,
+        args: serverData.args || [],
+        env: serverData.env || {},
+        isActive: serverData.isActive !== undefined ? serverData.isActive : false,
+        disabledTools: serverData.disabledTools || [],
+        disabledAutoApproveTools: serverData.disabledAutoApproveTools || [],
+        configSample: serverData.configSample,
+        headers: serverData.headers || {},
+        searchKey: serverData.searchKey,
+        provider: serverData.provider,
+        providerUrl: serverData.providerUrl,
+        logoUrl: serverData.logoUrl,
+        tags: serverData.tags || [],
+        timeout: serverData.timeout || 60
+      }
+
+      logger.silly(`Created server object with ID: ${id}`)
+
+      // Sync to Redux store (which handles persistence)
+      await this.syncToRedux(server, 'add')
+
+      logger.info(`Created MCP server: ${server.name} (${id})`)
+      this.emit('serverCreated', server)
+
+      return server
+    } catch (error) {
+      logger.error('Failed to create server:', error)
+      throw error
+    }
+  }
+
+  async updateServer(serverId: string, updateData: Partial<MCPServer>): Promise<MCPServer> {
+    try {
+      logger.silly(`updateServer called for ID: ${serverId}`)
+
+      const servers = await this.getServersFromRedux()
+      const existingServer = servers.find((server) => server.id === serverId)
+      if (!existingServer) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Validate name uniqueness if name is being updated
+      if (updateData.name && updateData.name !== existingServer.name) {
+        const nameExists = servers.some((server) => server.id !== serverId && server.name === updateData.name)
+        if (nameExists) {
+          throw new Error(`Server with name '${updateData.name}' already exists`)
+        }
+      }
+
+      // Update server object
+      const updatedServer: MCPServer = {
+        ...existingServer,
+        ...updateData,
+        id: serverId // Ensure ID cannot be changed
+      }
+
+      logger.silly(`Updated server object for: ${updatedServer.name}`)
+
+      // Sync to Redux store (which handles persistence)
+      await this.syncToRedux(updatedServer, 'update')
+
+      logger.info(`Updated MCP server: ${updatedServer.name} (${serverId})`)
+      this.emit('serverUpdated', updatedServer)
+
+      // If the server was active and configuration changed, restart the session
+      if (existingServer.isActive && this.hasConfigurationChanged(existingServer, updatedServer)) {
+        try {
+          await this.restartServerSession(serverId)
+        } catch (restartError) {
+          logger.warn(`Failed to restart session for updated server ${serverId}:`, restartError)
+        }
+      }
+
+      return updatedServer
+    } catch (error) {
+      logger.error('Failed to update server:', error)
+      throw error
+    }
+  }
+
+  async deleteServer(serverId: string): Promise<void> {
+    try {
+      logger.silly(`deleteServer called for ID: ${serverId}`)
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (!server) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Stop any active session first
+      if (this.sessions.has(serverId)) {
+        await this.deleteServerSession(serverId)
+      }
+
+      logger.silly(`Deleting server: ${server.name}`)
+
+      // Sync to Redux store (which handles persistence)
+      await this.syncToRedux(server, 'delete')
+
+      // Also remove from MCPService if it exists there
+      try {
+        await McpService.removeServer(null as any, server)
+      } catch (error) {
+        logger.warn('Failed to remove server from MCPService:', error)
+      }
+
+      logger.info(`Deleted MCP server: ${server.name} (${serverId})`)
+      this.emit('serverDeleted', server)
+    } catch (error) {
+      logger.error('Failed to delete server:', error)
+      throw error
+    }
+  }
+
+  async toggleServer(serverId: string): Promise<MCPServer> {
+    try {
+      logger.silly(`toggleServer called for ID: ${serverId}`)
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (!server) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Toggle active status
+      const updatedServer: MCPServer = {
+        ...server,
+        isActive: !server.isActive
+      }
+
+      logger.silly(`Toggling server ${server.name} to ${updatedServer.isActive ? 'active' : 'inactive'}`)
+
+      // Sync to Redux store (which handles persistence)
+      await this.syncToRedux(updatedServer, 'update')
+
+      // Handle session based on new status
+      if (updatedServer.isActive) {
+        try {
+          await this.createServerSession(serverId)
+        } catch (sessionError) {
+          logger.warn(`Failed to create session for activated server ${serverId}:`, sessionError)
+        }
+      } else {
+        try {
+          await this.deleteServerSession(serverId)
+        } catch (sessionError) {
+          logger.warn(`Failed to delete session for deactivated server ${serverId}:`, sessionError)
+        }
+      }
+
+      logger.info(`Toggled MCP server ${updatedServer.name}: ${updatedServer.isActive ? 'activated' : 'deactivated'}`)
+      this.emit('serverToggled', updatedServer)
+
+      return updatedServer
+    } catch (error) {
+      logger.error('Failed to toggle server:', error)
+      throw error
+    }
+  }
+
+  async toggleTool(serverName: string, toolName: string): Promise<ToolToggleResult> {
+    try {
+      logger.silly(`toggleTool called for server: ${serverName}, tool: ${toolName}`)
+
+      // Find server by name
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.name === serverName)
+      if (!server) {
+        throw new Error(`Server with name '${serverName}' not found`)
+      }
+
+      // Check if tool is currently disabled
+      const disabledTools = server.disabledTools || []
+      const isCurrentlyDisabled = disabledTools.includes(toolName)
+
+      logger.silly(`Tool ${toolName} currently disabled: ${isCurrentlyDisabled}`)
+
+      // Toggle tool status
+      let updatedDisabledTools: string[]
+      if (isCurrentlyDisabled) {
+        // Enable tool (remove from disabled list)
+        updatedDisabledTools = disabledTools.filter((tool) => tool !== toolName)
+      } else {
+        // Disable tool (add to disabled list)
+        updatedDisabledTools = [...disabledTools, toolName]
+      }
+
+      // Update server
+      const updatedServer: MCPServer = {
+        ...server,
+        disabledTools: updatedDisabledTools
+      }
+
+      await this.syncToRedux(updatedServer, 'update')
+
+      const result: ToolToggleResult = {
+        serverName,
+        toolName,
+        enabled: !isCurrentlyDisabled
+      }
+
+      logger.info(`Toggled tool ${toolName} for server ${serverName}: ${result.enabled ? 'enabled' : 'disabled'}`)
+      this.emit('toolToggled', result)
+
+      return result
+    } catch (error) {
+      logger.error('Failed to toggle tool:', error)
+      throw error
+    }
+  }
+
+  async getServerSession(serverId: string): Promise<MCPSession> {
+    try {
+      const session = this.sessions.get(serverId)
+      if (!session) {
+        throw new Error(`No session found for server ID '${serverId}'`)
+      }
+
+      return session
+    } catch (error) {
+      logger.error('Failed to get server session:', error)
+      throw error
+    }
+  }
+
+  async createServerSession(serverId: string): Promise<MCPSession> {
+    try {
+      logger.silly(`createServerSession called for ID: ${serverId}`)
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (!server) {
+        throw new Error(`Server with ID '${serverId}' not found`)
+      }
+
+      // Delete existing session if it exists
+      if (this.sessions.has(serverId)) {
+        await this.deleteServerSession(serverId)
+      }
+
+      // Create new session
+      const session: MCPSession = {
+        id: `session-${serverId}-${Date.now()}`,
+        serverId,
+        serverName: server.name,
+        isConnected: false,
+        connectionTime: new Date()
+      }
+
+      logger.silly(`Created session object for server: ${server.name}`)
+
+      // Try to initialize client through MCPService
+      try {
+        await McpService.initClient(server)
+        session.isConnected = true
+        session.lastActivity = new Date()
+        logger.info(`Created session for MCP server: ${server.name}`)
+      } catch (connectionError) {
+        session.isConnected = false
+        session.error = connectionError instanceof Error ? connectionError.message : String(connectionError)
+        logger.warn(`Failed to connect MCP server ${server.name}:`, connectionError)
+      }
+
+      // Store session
+      this.sessions.set(serverId, session)
+      this.emit('sessionCreated', session)
+
+      return session
+    } catch (error) {
+      logger.error('Failed to create server session:', error)
+      throw error
+    }
+  }
+
+  async deleteServerSession(serverId: string): Promise<void> {
+    try {
+      logger.silly(`deleteServerSession called for ID: ${serverId}`)
+
+      const session = this.sessions.get(serverId)
+      if (!session) {
+        throw new Error(`No session found for server ID '${serverId}'`)
+      }
+
+      const servers = await this.getServersFromRedux()
+      const server = servers.find((s) => s.id === serverId)
+      if (server) {
+        try {
+          await McpService.stopServer(null as any, server)
+        } catch (stopError) {
+          logger.warn(`Failed to stop MCP server ${server.name}:`, stopError)
+        }
+      }
+
+      // Remove session
+      this.sessions.delete(serverId)
+
+      logger.info(`Deleted session for server: ${session.serverName}`)
+      this.emit('sessionDeleted', session)
+    } catch (error) {
+      logger.error('Failed to delete server session:', error)
+      throw error
+    }
+  }
+
+  async restartServerSession(serverId: string): Promise<MCPSession> {
+    try {
+      await this.deleteServerSession(serverId)
+      return await this.createServerSession(serverId)
+    } catch (error) {
+      logger.error('Failed to restart server session:', error)
+      throw error
+    }
+  }
+
+  private hasConfigurationChanged(oldServer: MCPServer, newServer: MCPServer): boolean {
+    // Check if any configuration that affects connection has changed
+    const configFields = ['type', 'baseUrl', 'command', 'args', 'env', 'headers', 'timeout']
+
+    return configFields.some((field) => {
+      const oldValue = oldServer[field as keyof MCPServer]
+      const newValue = newServer[field as keyof MCPServer]
+      return JSON.stringify(oldValue) !== JSON.stringify(newValue)
+    })
+  }
+
+  // Utility methods for monitoring
+  getAllSessions(): MCPSession[] {
+    return Array.from(this.sessions.values())
+  }
+
+  getSessionsCount(): number {
+    return this.sessions.size
+  }
+
+  getConnectedSessionsCount(): number {
+    return Array.from(this.sessions.values()).filter((session) => session.isConnected).length
+  }
+
+  async healthCheck(): Promise<{ servers: number; sessions: number; connected: number }> {
+    const servers = await this.getServersFromRedux()
+    return {
+      servers: servers.length,
+      sessions: this.sessions.size,
+      connected: this.getConnectedSessionsCount()
+    }
+  }
+}
+
+export const mcpApiService = new MCPApiService()

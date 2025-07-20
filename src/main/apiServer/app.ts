@@ -8,6 +8,7 @@ import { timing } from 'hono/timing'
 import { authMiddleware } from './middleware/auth'
 import { errorHandler } from './middleware/error'
 import { chatRoutes } from './routes/chat'
+import { mcpRoutes } from './routes/mcp'
 import { modelsRoutes } from './routes/models'
 
 const app = new Hono()
@@ -48,13 +49,15 @@ api.get('/', (c) => {
     endpoints: {
       health: 'GET /health',
       models: 'GET /v1/models',
-      chat: 'POST /v1/chat/completions'
+      chat: 'POST /v1/chat/completions',
+      mcp: 'GET /v1/mcp/servers'
     }
   })
 })
 
 // Mount routes
 api.route('/chat', chatRoutes)
+api.route('/mcp', mcpRoutes)
 api.route('/models', modelsRoutes)
 
 export { app }
