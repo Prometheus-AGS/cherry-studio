@@ -1,7 +1,7 @@
 import { HolderOutlined } from '@ant-design/icons'
+import { loggerService } from '@logger'
 import { QuickPanelView, useQuickPanel } from '@renderer/components/QuickPanel'
 import TranslateButton from '@renderer/components/TranslateButton'
-import Logger from '@renderer/config/logger'
 import {
   isGenerateImageModel,
   isGenerateImageModels,
@@ -37,6 +37,7 @@ import type { MessageInputBaseParams } from '@renderer/types/newMessage'
 import { classNames, delay, formatFileSize, getFileExtension } from '@renderer/utils'
 import { formatQuotedText } from '@renderer/utils/formats'
 import { getFilesFromDropEvent, getSendMessageShortcutLabel, isSendMessageKeyPressed } from '@renderer/utils/input'
+import { getLanguageByLangcode } from '@renderer/utils/translate'
 import { documentExts, imageExts, textExts } from '@shared/config/constant'
 import { IpcChannel } from '@shared/IpcChannel'
 import { Button, Tooltip } from 'antd'
@@ -55,6 +56,8 @@ import KnowledgeBaseInput from './KnowledgeBaseInput'
 import MentionModelsInput from './MentionModelsInput'
 import SendMessageButton from './SendMessageButton'
 import TokenCount from './TokenCount'
+
+const logger = loggerService.withContext('Inputbar')
 
 interface Props {
   assistant: Assistant
@@ -204,7 +207,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
       return
     }
 
-    Logger.log('[DEBUG] Starting to send message')
+    logger.info('Starting to send message')
 
     EventEmitter.emit(EVENT_NAMES.SEND_MESSAGE)
 
@@ -213,7 +216,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
       const uploadedFiles = await FileManager.uploadFiles(files)
 
       const baseUserMessage: MessageInputBaseParams = { assistant, topic, content: text }
-      Logger.log('baseUserMessage', baseUserMessage)
+      logger.info('baseUserMessage', baseUserMessage)
 
       // getUserMessage()
       if (uploadedFiles) {
@@ -239,10 +242,10 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
       setText('')
       setFiles([])
       setTimeout(() => setText(''), 500)
-      setTimeout(() => resizeTextArea(), 0)
+      setTimeout(() => resizeTextArea(true), 0)
       setExpend(false)
     } catch (error) {
-      console.error('Failed to send message:', error)
+      logger.warn('Failed to send message:', error)
     }
   }, [assistant, dispatch, files, inputEmpty, loading, mentionedModels, resizeTextArea, text, topic])
 
@@ -253,11 +256,11 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
 
     try {
       setIsTranslating(true)
-      const translatedText = await translateText(text, targetLanguage)
+      const translatedText = await translateText(text, getLanguageByLangcode(targetLanguage))
       translatedText && setText(translatedText)
       setTimeout(() => resizeTextArea(), 0)
     } catch (error) {
-      console.error('Translation failed:', error)
+      logger.warn('Translation failed:', error)
     } finally {
       setIsTranslating(false)
     }
@@ -370,7 +373,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
         }, 200)
 
         if (spaceClickCount === 2) {
-          Logger.log('Triple space detected - trigger translation')
+          logger.info('Triple space detected - trigger translation')
           setSpaceClickCount(0)
           setIsTranslating(true)
           translate()
@@ -520,8 +523,6 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
     async (event: ClipboardEvent) => {
       return await PasteService.handlePaste(
         event,
-        isVisionModel(model),
-        isGenerateImageModel(model),
         supportedExts,
         setFiles,
         setText,
@@ -532,7 +533,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
         t
       )
     },
-    [model, pasteLongTextAsFile, pasteLongTextThreshold, resizeTextArea, supportedExts, t, text]
+    [pasteLongTextAsFile, pasteLongTextThreshold, resizeTextArea, supportedExts, t, text]
   )
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -560,7 +561,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
       setIsFileDragging(false)
 
       const files = await getFilesFromDropEvent(e).catch((err) => {
-        Logger.error('[Inputbar] handleDrop:', err)
+        logger.error('handleDrop:', err)
         return null
       })
 
@@ -772,7 +773,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
           return exists ? prev.filter((m) => getModelUniqId(m) !== modelId) : [...prev, model]
         })
       } else {
-        console.error('在已上传图片时，不能添加非视觉模型')
+        logger.error('Cannot add non-vision model when images are uploaded')
       }
     },
     [couldMentionNotVisionModel]
@@ -863,7 +864,10 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
             onInput={onInput}
             disabled={searching}
             onPaste={(e) => onPaste(e.nativeEvent)}
-            onClick={() => searching && dispatch(setSearching(false))}
+            onClick={() => {
+              searching && dispatch(setSearching(false))
+              quickPanel.close()
+            }}
           />
           <DragHandle onMouseDown={handleDragStart}>
             <HolderOutlined />
@@ -905,7 +909,7 @@ const Inputbar: FC<Props> = ({ assistant: _assistant, setActiveTopic, topic }) =
               />
               <TranslateButton text={text} onTranslated={onTranslated} isLoading={isTranslating} />
               {loading && (
-                <Tooltip placement="top" title={t('chat.input.pause')} arrow>
+                <Tooltip placement="top" title={t('chat.input.pause')} mouseLeaveDelay={0} arrow>
                   <ToolbarButton type="text" onClick={onPause} style={{ marginRight: -2, marginTop: 1 }}>
                     <CirclePause style={{ color: 'var(--color-error)', fontSize: 20 }} />
                   </ToolbarButton>
@@ -951,14 +955,14 @@ const Container = styled.div`
   flex-direction: column;
   position: relative;
   z-index: 2;
-  padding: 0 16px 16px 16px;
+  padding: 0 24px 18px 24px;
 `
 
 const InputBarContainer = styled.div`
   border: 0.5px solid var(--color-border);
   transition: all 0.2s ease;
   position: relative;
-  border-radius: 15px;
+  border-radius: 17px;
   padding-top: 8px; // 为拖动手柄留出空间
   background-color: var(--color-background-opacity);
 

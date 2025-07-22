@@ -1,3 +1,4 @@
+import { loggerService } from '@logger'
 import { ContentSearch, ContentSearchRef } from '@renderer/components/ContentSearch'
 import MultiSelectActionPopup from '@renderer/components/Popups/MultiSelectionPopup'
 import { QuickPanelProvider } from '@renderer/components/QuickPanel'
@@ -17,6 +18,8 @@ import styled from 'styled-components'
 import Inputbar from './Inputbar/Inputbar'
 import Messages from './Messages/Messages'
 import Tabs from './Tabs'
+
+const logger = loggerService.withContext('Chat')
 
 interface Props {
   assistant: Assistant
@@ -51,34 +54,25 @@ const Chat: FC<Props> = (props) => {
       const selectedText = window.getSelection()?.toString().trim()
       contentSearchRef.current?.enable(selectedText)
     } catch (error) {
-      console.error('Error enabling content search:', error)
+      logger.error('Error enabling content search:', error)
     }
   })
 
   const contentSearchFilter: NodeFilter = {
     acceptNode(node) {
-      if (node.parentNode) {
-        let parentNode: HTMLElement | null = node.parentNode as HTMLElement
-        while (parentNode?.parentNode) {
-          if (parentNode.classList.contains('MessageFooter')) {
-            return NodeFilter.FILTER_REJECT
-          }
+      const container = node.parentElement?.closest('.message-content-container')
+      if (!container) return NodeFilter.FILTER_REJECT
 
-          if (filterIncludeUser) {
-            if (parentNode?.classList.contains('message-content-container')) {
-              return NodeFilter.FILTER_ACCEPT
-            }
-          } else {
-            if (parentNode?.classList.contains('message-content-container-assistant')) {
-              return NodeFilter.FILTER_ACCEPT
-            }
-          }
-          parentNode = parentNode.parentNode as HTMLElement
-        }
-        return NodeFilter.FILTER_REJECT
-      } else {
-        return NodeFilter.FILTER_REJECT
+      const message = container.closest('.message')
+      if (!message) return NodeFilter.FILTER_REJECT
+
+      if (filterIncludeUser) {
+        return NodeFilter.FILTER_ACCEPT
       }
+      if (message.classList.contains('message-assistant')) {
+        return NodeFilter.FILTER_ACCEPT
+      }
+      return NodeFilter.FILTER_REJECT
     }
   }
 

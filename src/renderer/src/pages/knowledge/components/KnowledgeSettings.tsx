@@ -1,4 +1,5 @@
 import { InfoCircleOutlined, WarningOutlined } from '@ant-design/icons'
+import { loggerService } from '@logger'
 import { HStack } from '@renderer/components/Layout'
 import { TopView } from '@renderer/components/TopView'
 import { DEFAULT_KNOWLEDGE_DOCUMENT_COUNT, isMac } from '@renderer/config/constant'
@@ -16,6 +17,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
+const logger = loggerService.withContext('KnowledgeSettings')
 interface ShowParams {
   base: KnowledgeBase
 }
@@ -93,12 +95,12 @@ const PopupContainer: React.FC<Props> = ({ base: _base, resolve }) => {
 
   const onOk = async () => {
     try {
-      console.log('newbase', newBase)
+      logger.debug('newbase', newBase)
       updateKnowledgeBase(newBase)
       setOpen(false)
       resolve(newBase)
     } catch (error) {
-      console.error('Validation failed:', error)
+      logger.error('Validation failed:', error)
     }
   }
 
@@ -189,6 +191,11 @@ const PopupContainer: React.FC<Props> = ({ base: _base, resolve }) => {
           </SettingsItem>
 
           <SettingsItem>
+            <div className="settings-label">{t('knowledge.dimensions')}</div>
+            <Input value={base.dimensions ?? t('knowledge.not_set')} style={{ width: '100%' }} disabled></Input>
+          </SettingsItem>
+
+          <SettingsItem>
             <div className="settings-label">
               {t('models.rerank_model')}
               <Tooltip title={t('models.rerank_model_tooltip')} placement="right">
@@ -220,10 +227,10 @@ const PopupContainer: React.FC<Props> = ({ base: _base, resolve }) => {
             <Slider
               style={{ width: '100%' }}
               min={1}
-              max={30}
+              max={50}
               step={1}
               defaultValue={base.documentCount || DEFAULT_KNOWLEDGE_DOCUMENT_COUNT}
-              marks={{ 1: '1', 6: t('knowledge.document_count_default'), 30: '30' }}
+              marks={{ 1: '1', 6: t('knowledge.document_count_default'), 30: '30', 50: '50' }}
               onChange={(value) => setNewBase({ ...newBase, documentCount: value })}
             />
           </SettingsItem>
@@ -320,7 +327,7 @@ const PopupContainer: React.FC<Props> = ({ base: _base, resolve }) => {
       transitionName="animation-move-down"
       width="min(800px, 70vw)"
       styles={{
-        body: { padding: 0, height: 450 },
+        body: { padding: 0, height: 550 },
         header: {
           padding: '10px 15px',
           borderBottom: '0.5px solid var(--color-border)',
