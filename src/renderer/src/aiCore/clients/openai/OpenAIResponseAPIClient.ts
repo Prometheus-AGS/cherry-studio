@@ -36,7 +36,6 @@ import {
   openAIToolsToMcpTool
 } from '@renderer/utils/mcp-tools'
 import { findFileBlocks, findImageBlocks } from '@renderer/utils/messageUtils/find'
-import { buildSystemPrompt } from '@renderer/utils/prompt'
 import { MB } from '@shared/config/constant'
 import { isEmpty } from 'lodash'
 import OpenAI, { AzureOpenAI } from 'openai'
@@ -61,18 +60,51 @@ export class OpenAIResponseAPIClient extends OpenAIBaseClient<
     this.client = new OpenAIAPIClient(provider)
   }
 
+  private formatApiHost() {
+    const host = this.provider.apiHost
+    if (host.endsWith('/openai/v1')) {
+      return host
+    } else {
+      if (host.endsWith('/')) {
+        return host + 'openai/v1'
+      } else {
+        return host + '/openai/v1'
+      }
+    }
+  }
+
   /**
    * 根据模型特征选择合适的客户端
    */
   public getClient(model: Model) {
+    if (this.provider.type === 'openai-response' && !isOpenAIChatCompletionOnlyModel(model)) {
+      return this
+    }
     if (isOpenAILLMModel(model) && !isOpenAIChatCompletionOnlyModel(model)) {
       if (this.provider.id === 'azure-openai' || this.provider.type === 'azure-openai') {
-        this.provider = { ...this.provider, apiVersion: 'preview' }
+        this.provider = { ...this.provider, apiHost: this.formatApiHost() }
+        if (this.provider.apiVersion === 'preview') {
+          return this
+        } else {
+          return this.client
+        }
       }
       return this
     } else {
       return this.client
     }
+  }
+
+  /**
+   * 重写基类方法，返回内部实际使用的客户端类型
+   */
+  public override getClientCompatibilityType(model?: Model): string[] {
+    if (!model) {
+      return [this.constructor.name]
+    }
+
+    const actualClient = this.getClient(model)
+    return actualClient.getClientCompatibilityType(model)
   }
 
   override async getSdkInstance() {
@@ -81,7 +113,6 @@ export class OpenAIResponseAPIClient extends OpenAIBaseClient<
     }
 
     if (this.provider.id === 'azure-openai' || this.provider.type === 'azure-openai') {
-      this.provider = { ...this.provider, apiHost: `${this.provider.apiHost}/openai/v1` }
       return new AzureOpenAI({
         dangerouslyAllowBrowser: true,
         apiKey: this.apiKey,
@@ -345,9 +376,6 @@ export class OpenAIResponseAPIClient extends OpenAIBaseClient<
           enableToolUse: isEnabledToolUse(assistant)
         })
 
-        if (this.useSystemPromptForTools) {
-          systemMessageInput.text = await buildSystemPrompt(systemMessageInput.text || '', mcpTools, assistant)
-        }
         systemMessageContent.push(systemMessageInput)
         systemMessage.content = systemMessageContent
 

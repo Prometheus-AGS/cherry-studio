@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai'
+import { loggerService } from '@logger'
 import { getVertexAILocation, getVertexAIProjectId, getVertexAIServiceAccount } from '@renderer/hooks/useVertexAI'
 import { Model, Provider } from '@renderer/types'
 import { isEmpty } from 'lodash'
@@ -6,6 +7,7 @@ import { isEmpty } from 'lodash'
 import { AnthropicVertexClient } from '../anthropic/AnthropicVertexClient'
 import { GeminiAPIClient } from './GeminiAPIClient'
 
+const logger = loggerService.withContext('VertexAPIClient')
 export class VertexAPIClient extends GeminiAPIClient {
   private authHeaders?: Record<string, string>
   private authHeadersExpiry?: number
@@ -98,7 +100,7 @@ export class VertexAPIClient extends GeminiAPIClient {
 
       return this.authHeaders
     } catch (error: any) {
-      console.error('Failed to get auth headers:', error)
+      logger.error('Failed to get auth headers:', error)
       throw new Error(`Service Account authentication failed: ${error.message}`)
     }
   }

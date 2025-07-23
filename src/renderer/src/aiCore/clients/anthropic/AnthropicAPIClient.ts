@@ -25,9 +25,9 @@ import {
 } from '@anthropic-ai/sdk/resources/messages'
 import { MessageStream } from '@anthropic-ai/sdk/resources/messages/messages'
 import AnthropicVertex from '@anthropic-ai/vertex-sdk'
+import { loggerService } from '@logger'
 import { GenericChunk } from '@renderer/aiCore/middleware/schemas'
 import { DEFAULT_MAX_TOKENS } from '@renderer/config/constant'
-import Logger from '@renderer/config/logger'
 import { findTokenLimit, isClaudeReasoningModel, isReasoningModel, isWebSearchModel } from '@renderer/config/models'
 import { getAssistantSettings } from '@renderer/services/AssistantService'
 import FileManager from '@renderer/services/FileManager'
@@ -70,10 +70,11 @@ import {
   mcpToolsToAnthropicTools
 } from '@renderer/utils/mcp-tools'
 import { findFileBlocks, findImageBlocks } from '@renderer/utils/messageUtils/find'
-import { buildSystemPrompt } from '@renderer/utils/prompt'
 
 import { BaseApiClient } from '../BaseApiClient'
 import { AnthropicStreamListener, RawStreamListener, RequestTransformer, ResponseChunkTransformer } from '../types'
+
+const logger = loggerService.withContext('AnthropicAPIClient')
 
 export class AnthropicAPIClient extends BaseApiClient<
   Anthropic | AnthropicVertex,
@@ -376,12 +377,12 @@ export class AnthropicAPIClient extends BaseApiClient<
     rawOutput: AnthropicSdkRawOutput,
     listener: RawStreamListener<AnthropicSdkRawChunk>
   ): AnthropicSdkRawOutput {
-    console.log(`[AnthropicApiClient] 附加流监听器到原始输出`)
+    logger.debug(`Attaching stream listener to raw output`)
     // 专用的Anthropic事件处理
     const anthropicListener = listener as AnthropicStreamListener
     // 检查是否为MessageStream
     if (rawOutput instanceof MessageStream) {
-      console.log(`[AnthropicApiClient] 检测到 Anthropic MessageStream，附加专用监听器`)
+      logger.debug(`Detected Anthropic MessageStream, attaching specialized listener`)
 
       if (listener.onStart) {
         listener.onStart()
@@ -450,7 +451,7 @@ export class AnthropicAPIClient extends BaseApiClient<
       }> => {
         const { messages, mcpTools, maxTokens, streamOutput, enableWebSearch } = coreRequest
         // 1. 处理系统消息
-        let systemPrompt = assistant.prompt
+        const systemPrompt = assistant.prompt
 
         // 2. 设置工具
         const { tools } = this.setupToolsConfig({
@@ -458,10 +459,6 @@ export class AnthropicAPIClient extends BaseApiClient<
           model,
           enableToolUse: isEnabledToolUse(assistant)
         })
-
-        if (this.useSystemPromptForTools) {
-          systemPrompt = await buildSystemPrompt(systemPrompt, mcpTools, assistant)
-        }
 
         const systemMessage: TextBlockParam | undefined = systemPrompt
           ? { type: 'text', text: systemPrompt }
@@ -526,9 +523,18 @@ export class AnthropicAPIClient extends BaseApiClient<
           switch (rawChunk.type) {
             case 'message': {
               let i = 0
+              let hasTextContent = false
+              let hasThinkingContent = false
+
               for (const content of rawChunk.content) {
                 switch (content.type) {
                   case 'text': {
+                    if (!hasTextContent) {
+                      controller.enqueue({
+                        type: ChunkType.TEXT_START
+                      } as TextStartChunk)
+                      hasTextContent = true
+                    }
                     controller.enqueue({
                       type: ChunkType.TEXT_DELTA,
                       text: content.text
@@ -541,6 +547,12 @@ export class AnthropicAPIClient extends BaseApiClient<
                     break
                   }
                   case 'thinking': {
+                    if (!hasThinkingContent) {
+                      controller.enqueue({
+                        type: ChunkType.THINKING_START
+                      } as ThinkingStartChunk)
+                      hasThinkingContent = true
+                    }
                     controller.enqueue({
                       type: ChunkType.THINKING_DELTA,
                       text: content.thinking
@@ -666,13 +678,13 @@ export class AnthropicAPIClient extends BaseApiClient<
               if (toolCall) {
                 try {
                   toolCall.input = JSON.parse(accumulatedJson)
-                  Logger.debug(`Tool call id: ${toolCall.id}, accumulated json: ${accumulatedJson}`)
+                  logger.debug(`Tool call id: ${toolCall.id}, accumulated json: ${accumulatedJson}`)
                   controller.enqueue({
                     type: ChunkType.MCP_TOOL_CREATED,
                     tool_calls: [toolCall]
                   } as MCPToolCreatedChunk)
                 } catch (error) {
-                  Logger.error(`Error parsing tool call input: ${error}`)
+                  logger.error('Error parsing tool call input:', error as Error)
                 }
               }
               break
