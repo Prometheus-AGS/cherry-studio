@@ -1,9 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk'
 import AnthropicVertex from '@anthropic-ai/vertex-sdk'
 import { getVertexAILocation, getVertexAIProjectId, getVertexAIServiceAccount } from '@renderer/hooks/useVertexAI'
+import { loggerService } from '@renderer/services/LoggerService'
 import { Provider } from '@renderer/types'
 import { isEmpty } from 'lodash'
 
+const logger = loggerService.withContext('AnthropicVertexClient')
 import { AnthropicAPIClient } from './AnthropicAPIClient'
 
 export class AnthropicVertexClient extends AnthropicAPIClient {
@@ -45,8 +47,6 @@ export class AnthropicVertexClient extends AnthropicAPIClient {
     }
 
     const authHeaders = await this.getServiceAccountAuthHeaders()
-
-    console.log(this.getBaseURL())
 
     this.sdkInstance = new AnthropicVertex({
       projectId: projectId,
@@ -96,7 +96,7 @@ export class AnthropicVertexClient extends AnthropicAPIClient {
 
       return this.authHeaders
     } catch (error: any) {
-      console.error('Failed to get auth headers:', error)
+      logger.error('Failed to get auth headers:', error)
       throw new Error(`Service Account authentication failed: ${error.message}`)
     }
   }

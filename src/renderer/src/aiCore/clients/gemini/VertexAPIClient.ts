@@ -18,6 +18,19 @@ export class VertexAPIClient extends GeminiAPIClient {
     this.anthropicVertexClient = new AnthropicVertexClient(provider)
   }
 
+  override getClientCompatibilityType(model?: Model): string[] {
+    if (!model) {
+      return [this.constructor.name]
+    }
+
+    const actualClient = this.getClient(model)
+    if (actualClient === this) {
+      return [this.constructor.name]
+    }
+
+    return actualClient.getClientCompatibilityType(model)
+  }
+
   public getClient(model: Model) {
     if (model.id.includes('claude')) {
       return this.anthropicVertexClient
