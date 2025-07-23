@@ -1,6 +1,7 @@
 import 'emoji-picker-element'
 
 import { CheckOutlined, LoadingOutlined, RollbackOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { loggerService } from '@logger'
 import EmojiPicker from '@renderer/components/EmojiPicker'
 import { TopView } from '@renderer/components/TopView'
 import { AGENT_PROMPT } from '@renderer/config/prompts'
@@ -14,7 +15,6 @@ import { Agent, KnowledgeBase } from '@renderer/types'
 import { getLeadingEmoji, uuid } from '@renderer/utils'
 import { Button, Form, FormInstance, Input, Modal, Popover, Select, SelectProps } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
-import { ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import stringWidth from 'string-width'
@@ -31,6 +31,8 @@ type FieldType = {
   knowledge_base_ids: string[]
 }
 
+const logger = loggerService.withContext('AddAgentPopup')
+
 const PopupContainer: React.FC<Props> = ({ resolve }) => {
   const [open, setOpen] = useState(true)
   const [form] = Form.useForm()
@@ -42,6 +44,7 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
   const [showUndoButton, setShowUndoButton] = useState(false)
   const [originalPrompt, setOriginalPrompt] = useState('')
   const [tokenCount, setTokenCount] = useState(0)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const knowledgeState = useAppSelector((state) => state.knowledge)
   const showKnowledgeIcon = useSidebarIconShow('knowledge')
   const knowledgeOptions: SelectProps['options'] = []
@@ -93,8 +96,21 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
     setOpen(false)
   }
 
-  const onCancel = () => {
-    setOpen(false)
+  const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      window.modal.confirm({
+        title: t('common.confirm'),
+        content: t('agents.add.unsaved_changes_warning'),
+        okText: t('common.confirm'),
+        cancelText: t('common.cancel'),
+        centered: true,
+        onOk: () => {
+          setOpen(false)
+        }
+      })
+    } else {
+      setOpen(false)
+    }
   }
 
   const onClose = () => {
@@ -125,8 +141,9 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
       form.setFieldsValue({ prompt: generatedText })
       setShowUndoButton(true)
       setOriginalPrompt(content)
+      setHasUnsavedChanges(true)
     } catch (error) {
-      console.error('Error fetching data:', error)
+      logger.error('Error fetching data:', error as Error)
     }
 
     setLoading(false)
@@ -147,7 +164,7 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
       title={t('agents.add.title')}
       open={open}
       onOk={() => formRef.current?.submit()}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       maskClosable={false}
       afterClose={onClose}
       okText={t('agents.add.title')}
@@ -168,9 +185,21 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
             setTokenCount(count)
             setShowUndoButton(false)
           }
+
+          const currentValues = form.getFieldsValue()
+          setHasUnsavedChanges(currentValues.name?.trim() || currentValues.prompt?.trim() || emoji)
         }}>
         <Form.Item name="name" label="Emoji">
-          <Popover content={<EmojiPicker onEmojiClick={setEmoji} />} arrow>
+          <Popover
+            content={
+              <EmojiPicker
+                onEmojiClick={(selectedEmoji) => {
+                  setEmoji(selectedEmoji)
+                  setHasUnsavedChanges(true)
+                }}
+              />
+            }
+            arrow>
             <Button icon={emoji && <span style={{ fontSize: 20 }}>{emoji}</span>}>{t('common.select')}</Button>
           </Popover>
         </Form.Item>
@@ -213,7 +242,6 @@ const PopupContainer: React.FC<Props> = ({ resolve }) => {
                   .toLowerCase()
                   .includes(input.toLowerCase())
               }
-              suffixIcon={<ChevronDown size={16} color="var(--color-border)" />}
             />
           </Form.Item>
         )}

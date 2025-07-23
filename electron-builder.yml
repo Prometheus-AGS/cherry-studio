@@ -11,6 +11,11 @@ electronLanguages:
   - en # for macOS
 directories:
   buildResources: build
+
+protocols:
+  - name: Cherry Studio
+    schemes:
+      - cherrystudio
 files:
   - '**/*'
   - '!**/{.vscode,.yarn,.yarn-lock,.github,.cursorrules,.prettierrc}'
@@ -48,7 +53,11 @@ files:
   - '!node_modules/pdf-parse/lib/pdf.js/{v1.9.426,v1.10.88,v2.0.550}'
   - '!node_modules/mammoth/{mammoth.browser.js,mammoth.browser.min.js}'
   - '!node_modules/selection-hook/prebuilds/**/*' # we rebuild .node, don't use prebuilds
-  - '!**/*.{h,iobj,ipdb,tlog,recipe,vcxproj,vcxproj.filters}' # filter .node build files
+  - '!node_modules/pdfjs-dist/web/**/*'
+  - '!node_modules/pdfjs-dist/legacy/**/*'
+  - '!node_modules/selection-hook/node_modules' # we don't need what in the node_modules dir
+  - '!node_modules/selection-hook/src' # we don't need source files
+  - '!**/*.{h,iobj,ipdb,tlog,recipe,vcxproj,vcxproj.filters,Makefile,*.Makefile}' # filter .node build files
 asarUnpack:
   - resources/**
   - '**/*.{metal,exp,lib}'
@@ -90,6 +99,7 @@ linux:
   artifactName: ${productName}-${version}-${arch}.${ext}
   target:
     - target: AppImage
+    - target: deb
   maintainer: electronjs.org
   category: Utility
   desktop:
@@ -107,9 +117,8 @@ afterSign: scripts/notarize.js
 artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
-    - 新功能：可选数据保存目录
-    - 快捷助手：支持单独选择助手，支持暂停、上下文、思考过程、流式
-    - 划词助手：系统托盘菜单开关
-    - 翻译：新增 Markdown 预览选项
-    - 新供应商：新增 Vertex AI 服务商
-    - 错误修复和界面优化
+    新增全局记忆功能
+    MCP 支持 DXT 格式导入
+    全局快捷键支持 Linux 系统
+    模型思考过程增加动画效果
+    错误修复和性能优化

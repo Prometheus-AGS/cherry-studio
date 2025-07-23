@@ -4,7 +4,8 @@ import {
   SendMessageShortcut,
   setAssistantIconType,
   setAutoCheckUpdate as _setAutoCheckUpdate,
-  setEarlyAccess as _setEarlyAccess,
+  setDisableHardwareAcceleration,
+  setEnableDeveloperMode,
   setLaunchOnBoot,
   setLaunchToTray,
   setPinTopicsToTop,
@@ -12,6 +13,8 @@ import {
   setShowTokens,
   setSidebarIcons,
   setTargetLanguage,
+  setTestChannel as _setTestChannel,
+  setTestPlan as _setTestPlan,
   setTheme,
   SettingsState,
   setTopicPosition,
@@ -20,7 +23,7 @@ import {
   setWindowStyle
 } from '@renderer/store/settings'
 import { SidebarIcon, ThemeMode, TranslateLanguageVarious } from '@renderer/types'
-import { FeedUrl } from '@shared/config/constant'
+import { UpgradeChannel } from '@shared/config/constant'
 
 export function useSettings() {
   const settings = useAppSelector((state) => state.settings)
@@ -60,9 +63,14 @@ export function useSettings() {
       window.api.setAutoUpdate(isAutoUpdate)
     },
 
-    setEarlyAccess(isEarlyAccess: boolean) {
-      dispatch(_setEarlyAccess(isEarlyAccess))
-      window.api.setFeedUrl(isEarlyAccess ? FeedUrl.EARLY_ACCESS : FeedUrl.PRODUCTION)
+    setTestPlan(isTestPlan: boolean) {
+      dispatch(_setTestPlan(isTestPlan))
+      window.api.setTestPlan(isTestPlan)
+    },
+
+    setTestChannel(channel: UpgradeChannel) {
+      dispatch(_setTestChannel(channel))
+      window.api.setTestChannel(channel)
     },
 
     setTheme(theme: ThemeMode) {
@@ -94,6 +102,10 @@ export function useSettings() {
     },
     setShowTokens(showTokens: boolean) {
       dispatch(setShowTokens(showTokens))
+    },
+    setDisableHardwareAcceleration(disableHardwareAcceleration: boolean) {
+      dispatch(setDisableHardwareAcceleration(disableHardwareAcceleration))
+      window.api.setDisableHardwareAcceleration(disableHardwareAcceleration)
     }
   }
 }
@@ -109,4 +121,21 @@ export function useMessageStyle() {
 
 export const getStoreSetting = (key: keyof SettingsState) => {
   return store.getState().settings[key]
+}
+
+export const useEnableDeveloperMode = () => {
+  const enableDeveloperMode = useAppSelector((state) => state.settings.enableDeveloperMode)
+  const dispatch = useAppDispatch()
+
+  return {
+    enableDeveloperMode,
+    setEnableDeveloperMode: (enableDeveloperMode: boolean) => {
+      dispatch(setEnableDeveloperMode(enableDeveloperMode))
+      window.api.config.set('enableDeveloperMode', enableDeveloperMode)
+    }
+  }
+}
+
+export const getEnableDeveloperMode = () => {
+  return store.getState().settings.enableDeveloperMode
 }

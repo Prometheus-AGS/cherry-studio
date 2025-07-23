@@ -193,6 +193,7 @@ const textExtsByCategory = new Map([
       '.htm',
       '.xhtml', // HTML
       '.xml', // XML
+      '.fxml', // JavaFX XML
       '.org', // Org-mode
       '.wiki', // Wiki
       '.tex',
@@ -347,7 +348,8 @@ const textExtsByCategory = new Map([
       '.x3d', // X3D文件
       '.gltf', // glTF JSON
       '.prefab', // Unity预制体 (YAML格式)
-      '.meta' // Unity元数据文件 (YAML格式)
+      '.meta', // Unity元数据文件 (YAML格式)
+      '.tscn' // Godot场景文件
     ]
   ],
   [
@@ -406,8 +408,16 @@ export const defaultLanguage = 'en-US'
 
 export enum FeedUrl {
   PRODUCTION = 'https://releases.cherry-ai.com',
-  EARLY_ACCESS = 'https://github.com/CherryHQ/cherry-studio/releases/latest/download'
+  GITHUB_LATEST = 'https://github.com/CherryHQ/cherry-studio/releases/latest/download',
+  PRERELEASE_LOWEST = 'https://github.com/CherryHQ/cherry-studio/releases/download/v1.4.0'
 }
-export const defaultTimeout = 5 * 1000 * 60
+
+export enum UpgradeChannel {
+  LATEST = 'latest', // 最新稳定版本
+  RC = 'rc', // 公测版本
+  BETA = 'beta' // 预览版本
+}
+
+export const defaultTimeout = 10 * 1000 * 60
 
 export const occupiedDirs = ['logs', 'Network', 'Partitions/webview/Network']
