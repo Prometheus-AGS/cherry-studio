@@ -119,28 +119,29 @@ const PopupContainer: React.FC<Props> = ({ resolve, existingServers }) => {
       // Save token if present
       if (token) {
         selectedProvider.saveToken(token)
+        const newToken = selectedProvider.getToken()
         setTokens((prev) => ({
           ...prev,
-          [selectedProvider.tokenFieldName]: token
+          [selectedProvider.tokenFieldName]: newToken!
         }))
-      }
 
-      // Sync servers
-      const result = await selectedProvider.syncServers(token, existingServers)
+        // Sync servers
+        const result = await selectedProvider.syncServers(newToken!, existingServers)
 
-      if (result.success && result.addedServers?.length > 0) {
-        // Add the new servers to the store
-        for (const server of result.addedServers) {
-          addMCPServer(server)
-        }
-        window.message.success(result.message)
-        setOpen(false)
-      } else {
-        // Show message but keep dialog open
-        if (result.success) {
-          window.message.info(result.message)
+        if (result.success && result.addedServers?.length > 0) {
+          // Add the new servers to the store
+          for (const server of result.addedServers) {
+            addMCPServer(server)
+          }
+          window.message.success(result.message)
+          setOpen(false)
         } else {
-          window.message.error(result.message)
+          // Show message but keep dialog open
+          if (result.success) {
+            window.message.info(result.message)
+          } else {
+            window.message.error(result.message)
+          }
         }
       }
     } catch (error: any) {
