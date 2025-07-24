@@ -9,6 +9,9 @@ const logger = loggerService.withContext('ModelScopeSyncUtils')
 const TOKEN_STORAGE_KEY = 'modelscope_token'
 
 export const saveModelScopeToken = (token: string): void => {
+  if (token.startsWith('ms-')) {
+    token = token.replace('ms-', '')
+  }
   localStorage.setItem(TOKEN_STORAGE_KEY, token)
 }
 
