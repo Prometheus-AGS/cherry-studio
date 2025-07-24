@@ -8,7 +8,6 @@ import {
   isGrokReasoningModel,
   isQwenReasoningModel,
   isReasoningModel,
-  isSupportedReasoningEffortGrokModel,
   isSupportedReasoningEffortModel,
   isSupportedReasoningEffortOpenAIModel,
   isSupportedThinkingTokenClaudeModel,
@@ -195,15 +194,8 @@ export class OpenAIAPIClient extends OpenAIBaseClient<
       }
     }
 
-    // Grok models
-    if (isSupportedReasoningEffortGrokModel(model)) {
-      return {
-        reasoning_effort: reasoningEffort
-      }
-    }
-
-    // OpenAI models
-    if (isSupportedReasoningEffortOpenAIModel(model)) {
+    // Grok models/Perplexity models/OpenAI models
+    if (isSupportedReasoningEffortModel(model)) {
       return {
         reasoning_effort: reasoningEffort
       }

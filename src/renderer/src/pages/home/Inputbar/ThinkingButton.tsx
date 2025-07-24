@@ -10,6 +10,7 @@ import {
   GEMINI_FLASH_MODEL_REGEX,
   isDoubaoThinkingAutoModel,
   isSupportedReasoningEffortGrokModel,
+  isSupportedReasoningEffortPerplexityModel,
   isSupportedThinkingTokenDoubaoModel,
   isSupportedThinkingTokenGeminiModel,
   isSupportedThinkingTokenHunyuanModel,
@@ -42,7 +43,8 @@ const MODEL_SUPPORTED_OPTIONS: Record<string, ThinkingOption[]> = {
   gemini_pro: ['low', 'medium', 'high', 'auto'],
   qwen: ['off', 'low', 'medium', 'high'],
   doubao: ['off', 'auto', 'high'],
-  hunyuan: ['off', 'auto']
+  hunyuan: ['off', 'auto'],
+  perplexity: ['low', 'medium', 'high']
 }
 
 // 选项转换映射表：当选项不支持时使用的替代选项
@@ -65,6 +67,7 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
   const isQwenModel = isSupportedThinkingTokenQwenModel(model)
   const isDoubaoModel = isSupportedThinkingTokenDoubaoModel(model)
   const isHunyuanModel = isSupportedThinkingTokenHunyuanModel(model)
+  const isPerplexityModel = isSupportedReasoningEffortPerplexityModel(model)
 
   const currentReasoningEffort = useMemo(() => {
     return assistant.settings?.reasoning_effort || 'off'
@@ -83,8 +86,9 @@ const ThinkingButton: FC<Props> = ({ ref, model, assistant, ToolbarButton }): Re
     if (isQwenModel) return 'qwen'
     if (isDoubaoModel) return 'doubao'
     if (isHunyuanModel) return 'hunyuan'
+    if (isPerplexityModel) return 'perplexity'
     return 'default'
-  }, [isGeminiModel, isGrokModel, isQwenModel, isDoubaoModel, isGeminiFlashModel, isHunyuanModel])
+  }, [isGeminiModel, isGrokModel, isQwenModel, isDoubaoModel, isGeminiFlashModel, isHunyuanModel, isPerplexityModel])
 
   // 获取当前模型支持的选项
   const supportedOptions = useMemo(() => {
