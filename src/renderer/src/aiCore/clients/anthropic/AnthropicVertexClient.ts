@@ -3,7 +3,6 @@ import AnthropicVertex from '@anthropic-ai/vertex-sdk'
 import { getVertexAILocation, getVertexAIProjectId, getVertexAIServiceAccount } from '@renderer/hooks/useVertexAI'
 import { loggerService } from '@renderer/services/LoggerService'
 import { Provider } from '@renderer/types'
-import { isEmpty } from 'lodash'
 
 const logger = loggerService.withContext('AnthropicVertexClient')
 import { AnthropicAPIClient } from './AnthropicAPIClient'
@@ -18,19 +17,29 @@ export class AnthropicVertexClient extends AnthropicAPIClient {
   }
 
   private formatApiHost(host: string): string {
-    const forceUseOriginalHost = () => {
-      return host.endsWith('/')
-    }
-
+    // For Vertex AI with Anthropic models, we should NOT append /v1/
+    // The AnthropicVertex SDK handles all path construction internally
     if (!host) {
       return host
     }
 
-    return forceUseOriginalHost() ? host : `${host}/v1/`
+    // Remove any trailing paths that might interfere with the SDK's URL construction
+    // Keep only the base domain
+    const url = new URL(host.startsWith('http') ? host : `https://${host}`)
+    return `${url.protocol}//${url.host}`
   }
 
-  override getBaseURL() {
-    return this.formatApiHost(this.provider.apiHost)
+  override getBaseURL(): string {
+    const host = this.provider.apiHost
+
+    // If using the standard Google AI Platform endpoint, return the default
+    // Google AI Platform endpoint
+    if (!host || host === 'https://aiplatform.googleapis.com') {
+      return 'https://aiplatform.googleapis.com'
+    }
+
+    // For custom endpoints, format appropriately
+    return this.formatApiHost(host)
   }
 
   override async getSdkInstance(): Promise<AnthropicVertex> {
@@ -47,14 +56,22 @@ export class AnthropicVertexClient extends AnthropicAPIClient {
     }
 
     const authHeaders = await this.getServiceAccountAuthHeaders()
+    const host = this.provider.apiHost
 
-    this.sdkInstance = new AnthropicVertex({
+    // Create SDK configuration
+    const sdkConfig: any = {
       projectId: projectId,
       region: location,
       dangerouslyAllowBrowser: true,
-      defaultHeaders: authHeaders,
-      baseURL: isEmpty(this.getBaseURL()) ? undefined : this.getBaseURL()
-    })
+      defaultHeaders: authHeaders
+    }
+
+    // Only set baseURL if it's a custom endpoint, otherwise let SDK use its defaults
+    if (host && host !== 'https://aiplatform.googleapis.com') {
+      sdkConfig.baseURL = this.formatApiHost(host)
+    }
+
+    this.sdkInstance = new AnthropicVertex(sdkConfig)
 
     return this.sdkInstance
   }

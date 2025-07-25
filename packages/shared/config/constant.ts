@@ -193,8 +193,8 @@ export const GB = 1024 * MB
 export const defaultLanguage = 'en-US'
 
 export enum FeedUrl {
-  PRODUCTION = 'https://releases.cherry-ai.com',
-  GITHUB_LATEST = 'https://github.com/CherryHQ/cherry-studio/releases/latest/download'
+  PRODUCTION = 'https://releases.prometheusags.ai',
+  GITHUB_LATEST = 'https://github.com/Prometheus-AGS/prometheus-studio/releases/latest/download'
 }
 
 export enum UpgradeChannel {

@@ -1,15 +1,28 @@
 :root {
+  /* Prometheus Brand Colors */
+  --prometheus-navy: #0A192D;
+  --prometheus-yellow: #FFDD00;
+  --prometheus-orange: #FF5500;
+  --prometheus-red: #FF4D4D;
+  --prometheus-turquoise: #00A3A3;
+  --prometheus-light-blue: #4D9FFF;
+  --prometheus-ultra-light-gray: #F8F8F8;
+  --prometheus-light-gray: #F5F5F5;
+  --prometheus-medium-gray: #CCCCCC;
+  --prometheus-dark-gray: #333333;
+  --prometheus-light-navy: #0F2440;
+
   --color-white: #ffffff;
   --color-white-soft: rgba(255, 255, 255, 0.8);
   --color-white-mute: rgba(255, 255, 255, 0.94);
 
-  --color-black: #181818;
-  --color-black-soft: #222222;
-  --color-black-mute: #333333;
+  --color-black: #0A192D; /* Prometheus Navy */
+  --color-black-soft: #0F2440; /* Prometheus Light Navy */
+  --color-black-mute: #333333; /* Prometheus Dark Gray */
 
-  --color-gray-1: #515c67;
-  --color-gray-2: #414853;
-  --color-gray-3: #32363f;
+  --color-gray-1: #4D9FFF; /* Prometheus Light Blue */
+  --color-gray-2: #00A3A3; /* Prometheus Turquoise */
+  --color-gray-3: #CCCCCC; /* Prometheus Medium Gray */
 
   --color-text-1: rgba(255, 255, 245, 0.9);
   --color-text-2: rgba(235, 235, 245, 0.6);
@@ -18,12 +31,12 @@
   --color-background: var(--color-black);
   --color-background-soft: var(--color-black-soft);
   --color-background-mute: var(--color-black-mute);
-  --color-background-opacity: rgba(34, 34, 34, 0.7);
+  --color-background-opacity: rgba(10, 25, 45, 0.7); /* Navy with opacity */
   --inner-glow-opacity: 0.3; // For the glassmorphism effect in the dropdown menu
 
-  --color-primary: #00b96b;
-  --color-primary-soft: #00b96b99;
-  --color-primary-mute: #00b96b33;
+  --color-primary: #FFDD00; /* Prometheus Yellow */
+  --color-primary-soft: #FFDD0099; /* Yellow with opacity */
+  --color-primary-mute: #FFDD0033; /* Yellow with more opacity */
 
   --color-text: var(--color-text-1);
   --color-text-secondary: rgba(235, 235, 245, 0.7);
@@ -32,29 +45,29 @@
   --color-border: #ffffff19;
   --color-border-soft: #ffffff10;
   --color-border-mute: #ffffff05;
-  --color-error: #f44336;
-  --color-link: #338cff;
-  --color-code-background: #323232;
-  --color-hover: rgba(40, 40, 40, 1);
-  --color-active: rgba(55, 55, 55, 1);
-  --color-frame-border: #333;
+  --color-error: #FF4D4D; /* Prometheus Red */
+  --color-link: #4D9FFF; /* Prometheus Light Blue */
+  --color-code-background: #0F2440; /* Prometheus Light Navy */
+  --color-hover: rgba(15, 36, 64, 1); /* Light Navy */
+  --color-active: rgba(10, 25, 45, 1); /* Navy */
+  --color-frame-border: #333333; /* Prometheus Dark Gray */
   --color-group-background: var(--color-background-soft);
 
-  --color-reference: #404040;
+  --color-reference: #0F2440; /* Prometheus Light Navy */
   --color-reference-text: #ffffff;
-  --color-reference-background: #0b0e12;
+  --color-reference-background: #0A192D; /* Prometheus Navy */
 
   --color-list-item: rgba(255, 255, 255, 0.1);
   --color-list-item-hover: rgba(255, 255, 255, 0.05);
 
-  --modal-background: #111111;
+  --modal-background: #0A192D; /* Prometheus Navy */
 
   --color-highlight: rgba(0, 0, 0, 1);
-  --color-background-highlight: rgba(255, 255, 0, 0.9);
-  --color-background-highlight-accent: rgba(255, 150, 50, 0.9);
+  --color-background-highlight: rgba(255, 221, 0, 0.9); /* Yellow */
+  --color-background-highlight-accent: rgba(255, 85, 0, 0.9); /* Orange */
 
-  --navbar-background-mac: rgba(20, 20, 20, 0.55);
-  --navbar-background: #1f1f1f;
+  --navbar-background-mac: rgba(10, 25, 45, 0.55); /* Navy with opacity */
+  --navbar-background: #0A192D; /* Prometheus Navy */
 
   --navbar-height: 44px;
   --sidebar-width: 50px;
@@ -73,23 +86,23 @@
 
   --list-item-border-radius: 10px;
 
-  --color-status-success: #52c41a;
-  --color-status-error: #ff4d4f;
-  --color-status-warning: #faad14;
+  --color-status-success: #00A3A3; /* Prometheus Turquoise */
+  --color-status-error: #FF4D4D; /* Prometheus Red */
+  --color-status-warning: #FF5500; /* Prometheus Orange */
 }
 
 [theme-mode='light'] {
-  --color-white: #ffffff;
+  --color-white: #F8F8F8; /* Prometheus Ultra Light Gray */
   --color-white-soft: rgba(0, 0, 0, 0.04);
-  --color-white-mute: #eee;
+  --color-white-mute: #F5F5F5; /* Prometheus Light Gray */
 
-  --color-black: #1b1b1f;
-  --color-black-soft: #262626;
-  --color-black-mute: #363636;
+  --color-black: #0A192D; /* Prometheus Navy */
+  --color-black-soft: #0F2440; /* Prometheus Light Navy */
+  --color-black-mute: #333333; /* Prometheus Dark Gray */
 
-  --color-gray-1: #8e8e93;
-  --color-gray-2: #aeaeb2;
-  --color-gray-3: #c7c7cc;
+  --color-gray-1: #4D9FFF; /* Prometheus Light Blue */
+  --color-gray-2: #00A3A3; /* Prometheus Turquoise */
+  --color-gray-3: #CCCCCC; /* Prometheus Medium Gray */
 
   --color-text-1: rgba(0, 0, 0, 1);
   --color-text-2: rgba(0, 0, 0, 0.6);
@@ -98,12 +111,12 @@
   --color-background: var(--color-white);
   --color-background-soft: var(--color-white-soft);
   --color-background-mute: var(--color-white-mute);
-  --color-background-opacity: rgba(243, 243, 243, 1);
+  --color-background-opacity: rgba(248, 248, 248, 1); /* Ultra Light Gray */
   --inner-glow-opacity: 0.1;
 
-  --color-primary: #00b96b;
-  --color-primary-soft: #00b96b99;
-  --color-primary-mute: #00b96b33;
+  --color-primary: #FFDD00; /* Prometheus Yellow */
+  --color-primary-soft: #FFDD0099; /* Yellow with opacity */
+  --color-primary-mute: #FFDD0033; /* Yellow with more opacity */
 
   --color-text: var(--color-text-1);
   --color-text-secondary: rgba(0, 0, 0, 0.75);
@@ -112,12 +125,12 @@
   --color-border: #00000019;
   --color-border-soft: #00000010;
   --color-border-mute: #00000005;
-  --color-error: #f44336;
-  --color-link: #1677ff;
-  --color-code-background: #e3e3e3;
+  --color-error: #FF4D4D; /* Prometheus Red */
+  --color-link: #4D9FFF; /* Prometheus Light Blue */
+  --color-code-background: #F5F5F5; /* Prometheus Light Gray */
   --color-hover: var(--color-white-mute);
   --color-active: var(--color-white-soft);
-  --color-frame-border: #ddd;
+  --color-frame-border: #CCCCCC; /* Prometheus Medium Gray */
   --color-group-background: var(--color-white);
 
   --color-reference: #cfe1ff;
@@ -130,16 +143,11 @@
   --modal-background: var(--color-white);
 
   --color-highlight: initial;
-  --color-background-highlight: rgba(255, 255, 0, 0.5);
-  --color-background-highlight-accent: rgba(255, 150, 50, 0.5);
+  --color-background-highlight: rgba(255, 221, 0, 0.5); /* Yellow */
+  --color-background-highlight-accent: rgba(255, 85, 0, 0.5); /* Orange */
 
-  --navbar-background-mac: rgba(255, 255, 255, 0.55);
-  --navbar-background: rgba(244, 244, 244);
-
-  --chat-background: transparent;
-  --chat-background-user: rgba(0, 0, 0, 0.045);
-  --chat-background-assistant: transparent;
-  --chat-text-user: var(--color-text);
+  --navbar-background-mac: rgba(248, 248, 248, 0.55); /* Ultra Light Gray with opacity */
+  --navbar-background: rgba(245, 245, 245); /* Light Gray */
 }
 
 [navbar-position='left'] {

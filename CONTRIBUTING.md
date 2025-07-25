@@ -28,7 +28,7 @@ Please make sure you have read the [Code of Conduct](CODE_OF_CONDUCT.md) and the
 
 ## Getting Started
 
-To help you get familiar with the codebase, we recommend tackling issues tagged with one or more of the following labels: [good-first-issue](https://github.com/CherryHQ/cherry-studio/labels/good%20first%20issue), [help-wanted](https://github.com/CherryHQ/cherry-studio/labels/help%20wanted), or [kind/bug](https://github.com/CherryHQ/cherry-studio/labels/kind%2Fbug). Any help is welcome.
+To help you get familiar with the codebase, we recommend tackling issues tagged with one or more of the following labels: [good-first-issue](https://github.com/Prometheus-AGS/prometheus-studio/labels/good%20first%20issue), [help-wanted](https://github.com/Prometheus-AGS/prometheus-studio/labels/help%20wanted), or [kind/bug](https://github.com/Prometheus-AGS/prometheus-studio/labels/kind%2Fbug). Any help is welcome.
 
 ### Testing
 
@@ -72,6 +72,6 @@ The Test Plan aims to provide users with a more stable application experience an
 If you have any questions or suggestions, feel free to contact us through the following ways:
 
 - WeChat: kangfenmao
-- [GitHub Issues](https://github.com/CherryHQ/cherry-studio/issues)
+- [GitHub Issues](https://github.com/Prometheus-AGS/prometheus-studio/issues)
 
 Thank you for your support and contributions! We look forward to working with you to make Cherry Studio a better product.

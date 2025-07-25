@@ -1,5 +1,5 @@
-appId: com.kangfenmao.CherryStudio
-productName: Cherry Studio
+appId: ai.prometheusags.PrometheusStudio
+productName: Prometheus Studio
 electronLanguages:
   - zh-CN
   - zh-TW
@@ -13,9 +13,9 @@ directories:
   buildResources: build
 
 protocols:
-  - name: Cherry Studio
+  - name: Prometheus Studio
     schemes:
-      - cherrystudio
+      - prometheusstudio
 files:
   - '**/*'
   - '!**/{.vscode,.yarn,.yarn-lock,.github,.cursorrules,.prettierrc}'
@@ -62,7 +62,7 @@ asarUnpack:
   - resources/**
   - '**/*.{metal,exp,lib}'
 win:
-  executableName: Cherry Studio
+  executableName: Prometheus Studio
   artifactName: ${productName}-${version}-${arch}-setup.${ext}
   target:
     - target: nsis
@@ -83,6 +83,7 @@ portable:
   artifactName: ${productName}-${version}-${arch}-portable.${ext}
   buildUniversalInstaller: false
 mac:
+  icon: src/renderer/src/assets/images/logo.png
   entitlementsInherit: build/entitlements.mac.plist
   notarize: false
   artifactName: ${productName}-${version}-${arch}.${ext}
@@ -104,12 +105,12 @@ linux:
   category: Utility
   desktop:
     entry:
-      StartupWMClass: CherryStudio
+      StartupWMClass: PrometheusStudio
   mimeTypes:
-    - x-scheme-handler/cherrystudio
+    - x-scheme-handler/prometheusstudio
 publish:
   provider: generic
-  url: https://releases.cherry-ai.com
+  url: https://releases.prometheusags.ai
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
 afterPack: scripts/after-pack.js

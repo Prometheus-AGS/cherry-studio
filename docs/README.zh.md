@@ -29,12 +29,12 @@
 </div>
 
 <h1 align="center">
-  <a href="https://github.com/CherryHQ/cherry-studio/releases">
-    <img src="https://github.com/CherryHQ/cherry-studio/blob/main/build/icon.png?raw=true" width="150" height="150" alt="banner" /><br>
+  <a href="https://github.com/Prometheus-AGS/prometheus-studio/releases">
+    <img src="https://github.com/Prometheus-AGS/prometheus-studio/blob/main/build/icon.png?raw=true" width="150" height="150" alt="banner" /><br>
   </a>
 </h1>
 <p align="center">
-  <a href="https://github.com/CherryHQ/cherry-studio">English</a> | 中文 | <a href="https://cherry-ai.com">官方网站</a> | <a href="https://docs.cherry-ai.com/cherry-studio-wen-dang/zh-cn">文档</a> | <a href="./dev.md">开发</a> | <a href="https://github.com/CherryHQ/cherry-studio/issues">反馈</a><br>
+  <a href="https://github.com/Prometheus-AGS/prometheus-studio">English</a> | 中文 | <a href="https://cherry-ai.com">官方网站</a> | <a href="https://docs.cherry-ai.com/cherry-studio-wen-dang/zh-cn">文档</a> | <a href="./dev.md">开发</a> | <a href="https://github.com/Prometheus-AGS/prometheus-studio/issues">反馈</a><br>
 </p>
 
 <!-- 题头徽章组合 -->
@@ -157,7 +157,7 @@ https://docs.cherry-ai.com
 
 在我们的[项目面板](https://github.com/orgs/CherryHQ/projects/7)上跟踪进展并参与贡献。
 
-想要影响开发计划？欢迎加入我们的 [GitHub 讨论区](https://github.com/CherryHQ/cherry-studio/discussions) 分享您的想法和反馈！
+想要影响开发计划？欢迎加入我们的 [GitHub 讨论区](https://github.com/Prometheus-AGS/prometheus-studio/discussions) 分享您的想法和反馈！
 
 # 🌈 主题
 
@@ -274,8 +274,8 @@ https://docs.cherry-ai.com
 
 # 🚀 贡献者
 
-<a href="https://github.com/CherryHQ/cherry-studio/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=CherryHQ/cherry-studio" />
+<a href="https://github.com/Prometheus-AGS/prometheus-studio/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Prometheus-AGS/prometheus-studio" />
 </a>
 <br /><br />
 
@@ -285,18 +285,18 @@ https://docs.cherry-ai.com
 
 # ⭐️ Star 记录
 
-<a href="https://www.star-history.com/#CherryHQ/cherry-studio&Date">
+<a href="https://www.star-history.com/#Prometheus-AGS/prometheus-studio&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=CherryHQ/cherry-studio&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=CherryHQ/cherry-studio&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=CherryHQ/cherry-studio&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Prometheus-AGS/prometheus-studio&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Prometheus-AGS/prometheus-studio&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Prometheus-AGS/prometheus-studio&type=Date" />
  </picture>
 </a>
 
 <!-- Links & Images -->
 
 [deepwiki-shield]: https://img.shields.io/badge/Deepwiki-CherryHQ-0088CC
-[deepwiki-link]: https://deepwiki.com/CherryHQ/cherry-studio
+[deepwiki-link]: https://deepwiki.com/Prometheus-AGS/prometheus-studio
 [twitter-shield]: https://img.shields.io/badge/Twitter-CherryStudioApp-0088CC?logo=x
 [twitter-link]: https://twitter.com/CherryStudioHQ
 [discord-shield]: https://img.shields.io/badge/Discord-@CherryStudio-0088CC?logo=discord

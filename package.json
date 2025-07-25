@@ -1,11 +1,11 @@
 {
-  "name": "CherryStudio",
+  "name": "PrometheusStudio",
   "version": "1.5.3",
   "private": true,
   "description": "A powerful AI assistant for producer.",
   "main": "./out/main/index.js",
-  "author": "support@cherry-ai.com",
-  "homepage": "https://github.com/CherryHQ/cherry-studio",
+  "author": "support@prometheusags.ai",
+  "homepage": "https://github.com/Prometheus-AGS/prometheus-studio",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -123,7 +123,7 @@
     "@notionhq/client": "^2.2.15",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/core": "2.0.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.200.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.203.0",
     "@opentelemetry/sdk-trace-base": "^2.0.0",
     "@opentelemetry/sdk-trace-node": "^2.0.0",
     "@opentelemetry/sdk-trace-web": "^2.0.0",
@@ -227,7 +227,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hotkeys-hook": "^4.6.1",
-    "react-i18next": "^14.1.2",
+    "react-i18next": "^15.6.1",
     "react-infinite-scroll-component": "^6.1.0",
     "react-json-view": "^1.21.3",
     "react-markdown": "^10.1.0",

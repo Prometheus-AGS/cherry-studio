@@ -13,7 +13,7 @@ import {
   TranslateLanguageVarious
 } from '@renderer/types'
 import { uuid } from '@renderer/utils'
-import { UpgradeChannel } from '@shared/config/constant'
+import { defaultLanguage, UpgradeChannel } from '@shared/config/constant'
 
 import { RemoteSyncState } from './backup'
 
@@ -211,7 +211,7 @@ export const initialState: SettingsState = {
   showTopics: true,
   assistantsTabSortType: 'list',
   sendMessageShortcut: 'Enter',
-  language: navigator.language as LanguageVarious,
+  language: defaultLanguage,
   targetLanguage: 'en-us',
   proxyMode: 'system',
   proxyUrl: undefined,
@@ -228,7 +228,7 @@ export const initialState: SettingsState = {
   tray: true,
   theme: ThemeMode.system,
   userTheme: {
-    colorPrimary: '#00b96b'
+    colorPrimary: '#FFDD00'
   },
   windowStyle: 'opaque',
   fontSize: 14,
@@ -273,7 +273,7 @@ export const initialState: SettingsState = {
   webdavHost: '',
   webdavUser: '',
   webdavPass: '',
-  webdavPath: '/cherry-studio',
+  webdavPath: '/prometheus-studio',
   webdavAutoSync: false,
   webdavSyncInterval: 0,
   webdavMaxBackups: 0,

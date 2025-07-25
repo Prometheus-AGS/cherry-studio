@@ -22,6 +22,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.REPO_DISPATCH_TOKEN }}
-          repository: CherryHQ/cherry-studio-docs
+          repository: Prometheus-AGS/prometheus-studio-docs
           event-type: update-download-version
           client-payload: '{"version": "${{ steps.get-event-tag.outputs.tag }}"}'

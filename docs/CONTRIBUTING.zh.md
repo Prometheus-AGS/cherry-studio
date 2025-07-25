@@ -28,7 +28,7 @@
 
 ## 开始贡献
 
-为了让您更熟悉代码，建议您处理一些标记有以下标签之一或多个的问题：[good-first-issue](https://github.com/CherryHQ/cherry-studio/labels/good%20first%20issue)、[help-wanted](https://github.com/CherryHQ/cherry-studio/labels/help%20wanted) 或 [kind/bug](https://github.com/CherryHQ/cherry-studio/labels/kind%2Fbug)。任何帮助都会收到欢迎。
+为了让您更熟悉代码，建议您处理一些标记有以下标签之一或多个的问题：[good-first-issue](https://github.com/Prometheus-AGS/prometheus-studio/labels/good%20first%20issue)、[help-wanted](https://github.com/Prometheus-AGS/prometheus-studio/labels/help%20wanted) 或 [kind/bug](https://github.com/Prometheus-AGS/prometheus-studio/labels/kind%2Fbug)。任何帮助都会收到欢迎。
 
 ### 测试
 
@@ -76,6 +76,6 @@ git commit --signoff -m "Your commit message"
 如果您有任何问题或建议，欢迎通过以下方式联系我们：
 
 - 微信：kangfenmao
-- [GitHub Issues](https://github.com/CherryHQ/cherry-studio/issues)
+- [GitHub Issues](https://github.com/Prometheus-AGS/prometheus-studio/issues)
 
 感谢您的支持和贡献！我们期待与您一起将 Cherry Studio 打造成更好的产品。

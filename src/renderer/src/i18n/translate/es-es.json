@@ -1702,7 +1702,7 @@
           },
           "description": {
             "0": "El asistente de selección de texto necesita el permiso de «<strong>Accesibilidad</strong>» para funcionar correctamente.",
-            "1": "Haga clic en «<strong>Ir a configuración</strong>», luego, en la ventana emergente de solicitud de permisos que aparecerá, haga clic en el botón «<strong>Abrir configuración del sistema</strong>» y, a continuación, busque «<strong>Cherry Studio</strong>» en la lista de aplicaciones y active el interruptor de permisos.",
+            "1": "Haga clic en «<strong>Ir a configuración</strong>», luego, en la ventana emergente de solicitud de permisos que aparecerá, haga clic en el botón «<strong>Abrir configuración del sistema</strong>» y, a continuación, busque «<strong>Prometheus Studio</strong>» en la lista de aplicaciones y active el interruptor de permisos.",
             "2": "Una vez completada la configuración, vuelva a activar el asistente de selección de texto."
           },
           "title": "Permisos de accesibilidad"
@@ -1714,7 +1714,7 @@
         "title": "Lista de selección de aplicaciones",
         "user_tips": {
           "mac": "Ingrese el ID de paquete de la aplicación, uno por línea, sin distinguir mayúsculas y minúsculas, se permite la coincidencia aproximada. Por ejemplo: com.google.Chrome, com.apple.mail, etc.",
-          "windows": "Ingrese el nombre del archivo ejecutable de la aplicación, uno por línea, sin distinguir mayúsculas y minúsculas, se permite la coincidencia aproximada. Por ejemplo: chrome.exe, weixin.exe, Cherry Studio.exe, etc."
+          "windows": "Ingrese el nombre del archivo ejecutable de la aplicación, uno por línea, sin distinguir mayúsculas y minúsculas, se permite la coincidencia aproximada. Por ejemplo: chrome.exe, weixin.exe, Prometheus Studio.exe, etc."
         }
       },
       "search_modal": {
@@ -2256,7 +2256,7 @@
         },
         "root": {
           "label": "Directorio de respaldo (opcional)",
-          "placeholder": "Por ejemplo: /cherry-studio"
+          "placeholder": "Por ejemplo: /prometheus-studio"
         },
         "secretAccessKey": {
           "label": "Clave de acceso secreta",
