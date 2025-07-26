@@ -78,13 +78,16 @@ export default class AppUpdater {
   private async _getPreReleaseVersionFromGithub(channel: UpgradeChannel) {
     try {
       logger.info(`get pre release version from github: ${channel}`)
-      const responses = await fetch('https://api.github.com/repos/Prometheus-AGS/prometheus-studio/releases?per_page=8', {
-        headers: {
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-          'Accept-Language': 'en-US,en;q=0.9'
+      const responses = await fetch(
+        'https://api.github.com/repos/Prometheus-AGS/prometheus-studio/releases?per_page=8',
+        {
+          headers: {
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Accept-Language': 'en-US,en;q=0.9'
+          }
         }
-      })
+      )
       const data = (await responses.json()) as GithubReleaseInfo[]
       const release: GithubReleaseInfo | undefined = data.find((item: GithubReleaseInfo) => {
         return item.prerelease && item.tag_name.includes(`-${channel}.`)

@@ -305,7 +305,9 @@ const AboutSettings: FC = () => {
             <Globe size={18} />
             {t('settings.about.website.title')}
           </SettingRowTitle>
-          <Button onClick={() => onOpenWebsite('https://prometheusags.ai')}>{t('settings.about.website.button')}</Button>
+          <Button onClick={() => onOpenWebsite('https://prometheusags.ai')}>
+            {t('settings.about.website.button')}
+          </Button>
         </SettingRow>
         <SettingDivider />
         <SettingRow>
@@ -313,7 +315,8 @@ const AboutSettings: FC = () => {
             <Github size={18} />
             {t('settings.about.feedback.title')}
           </SettingRowTitle>
-          <Button onClick={() => onOpenWebsite('https://github.com/Prometheus-AGS/prometheus-studio/issues/new/choose')}>
+          <Button
+            onClick={() => onOpenWebsite('https://github.com/Prometheus-AGS/prometheus-studio/issues/new/choose')}>
             {t('settings.about.feedback.button')}
           </Button>
         </SettingRow>

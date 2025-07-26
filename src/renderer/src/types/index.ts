@@ -8,6 +8,24 @@ export * from './file'
 import type { FileMetadata } from './file'
 import type { Message } from './newMessage'
 
+// React Artifacts Compilation Types
+export interface CompilerOptions {
+  generateSourceMap?: boolean
+  minify?: boolean
+  target?: 'es2015' | 'es2017' | 'es2018' | 'es2019' | 'es2020' | 'esnext'
+  format?: 'esm' | 'cjs' | 'iife'
+  external?: string[]
+}
+
+export interface CompilationResult {
+  success: boolean
+  errors: string[]
+  warnings: string[]
+  bundle: string | null
+  sourceMap: string | null
+  compilationTime: number
+}
+
 export type Assistant = {
   id: string
   name: string
@@ -351,7 +369,119 @@ export type MinAppType = {
   background?: string
   style?: CSSProperties
   addTime?: string
-  type?: 'Custom' | 'Default' // Added the 'type' property
+  type?: 'Custom' | 'Default' | 'ReactArtifact' // Extended to support React artifacts
+}
+
+// React Artifact specific types
+export interface ArtifactMetadata {
+  title: string
+  description: string
+  props: Record<string, string>
+  dependencies: string[]
+  tags?: string[]
+  author?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ReactArtifact {
+  id: string
+  code: string
+  metadata: ArtifactMetadata
+  conversationId?: string
+  messageId?: string
+  version: number
+  parentVersion?: number
+  history: ArtifactHistory
+}
+
+export interface ArtifactVersion {
+  id: string
+  artifactId: string
+  version: number
+  code: string
+  metadata: ArtifactMetadata
+  parentVersion?: number
+  createdAt: string
+  createdBy: 'user' | 'llm'
+  changeDescription: string
+  diffSummary: {
+    linesAdded: number
+    linesRemoved: number
+    linesModified: number
+  }
+}
+
+export interface ArtifactHistory {
+  artifactId: string
+  currentVersion: number
+  versions: ArtifactVersion[]
+  branches?: ArtifactBranch[]
+}
+
+
+export interface ArtifactBranch {
+  id: string
+  name: string
+  baseVersion: number
+  headVersion: number
+  createdAt: string
+}
+
+export interface ParsedArtifact {
+  id: string
+  metadata: ArtifactMetadata
+  code: string
+  createdAt: string
+}
+
+export interface EditRequest {
+  artifactId: string
+  currentVersion: number
+  editInstruction: string
+  context?: string
+  preserveProps?: boolean
+}
+
+export interface EditResponse {
+  success: boolean
+  newCode?: string
+  explanation: string
+  changesApplied: string[]
+  warnings?: string[]
+  errors?: string[]
+}
+
+export interface ConversationContext {
+  hasArtifacts: boolean
+  lastMessageContainedArtifact: boolean
+  artifactCount: number
+}
+
+export interface ProcessedMessage {
+  response: string
+  artifacts: ParsedArtifact[]
+  hasArtifacts: boolean
+}
+
+export interface VersionDiff {
+  additions: string[]
+  deletions: string[]
+  modifications: string[]
+  summary: {
+    linesAdded: number
+    linesRemoved: number
+    linesModified: number
+  }
+}
+
+// React Artifact MinApp extension
+export interface ReactArtifactMinApp extends MinAppType {
+  type: 'ReactArtifact'
+  artifactId: string
+  artifact: ReactArtifact
+  viewMode?: 'preview' | 'code' | 'split'
+  showProps?: boolean
 }
 
 export enum ThemeMode {
